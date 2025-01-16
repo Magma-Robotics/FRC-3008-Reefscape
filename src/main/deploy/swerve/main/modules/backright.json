@@ -1,0 +1,27 @@
+{
+  "drive": {
+    "type": "falcon",
+    "id": 14,
+    "canbus": null
+  },
+  "angle": {
+    "type": "sparkmax_neo",
+    "id": 15,
+    "canbus": null
+  },
+  "encoder": {
+    "type": "cancoder",
+    "id": 20,
+    "canbus": null
+  },
+  "inverted": {
+    "drive": true,
+    "angle": true
+  },
+  "absoluteEncoderInverted": false,
+  "absoluteEncoderOffset": 56,
+  "location": {
+    "front": -11,
+    "left": -11
+  }
+}
