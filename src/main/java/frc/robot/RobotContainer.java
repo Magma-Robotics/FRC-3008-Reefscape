@@ -64,9 +64,9 @@ public class RobotContainer
    * Converts driver input into a field-relative ChassisSpeeds that is controlled by angular velocity.
    */
   SwerveInputStream driveAngularVelocity = SwerveInputStream.of(drivebase.getSwerveDrive(),
-                                                                () -> driverXbox.getLeftY() * -1,
-                                                                () -> driverXbox.getLeftX() * -1)
-                                                            .withControllerRotationAxis(driverXbox::getRightX)
+                                                                () -> driverXbox.getLeftY() * 1,
+                                                                () -> driverXbox.getLeftX() * 1)
+                                                            .withControllerRotationAxis(() -> -driverXbox.getRightX())
                                                             .deadband(OperatorConstants.DEADBAND)
                                                             .scaleTranslation(0.8)
                                                             .allianceRelativeControl(true);
@@ -143,18 +143,26 @@ public class RobotContainer
   private void configureBindings()
   {
     drivebase.setDefaultCommand(driveFieldOrientedAnglularVelocity);
-    driverXbox
+    //sys id tests on swerve drive
+    /*driverXbox
       .a()
       .and(driverXbox.leftBumper())
       .whileTrue(drivebase.sysIdAngleMotorCommand());
     driverXbox
       .a()
       .and(driverXbox.rightBumper())
-      .whileTrue(drivebase.sysIdDriveMotorCommand());
+      .whileTrue(drivebase.sysIdDriveMotorCommand());*/
 
     driverXbox
       .start()
       .onTrue(Commands.runOnce(drivebase::zeroGyro));
+    driverXbox
+      .b()
+      .onTrue(drivebase.driveToPose(
+        new Pose2d(
+          new Translation2d(550, 160),
+          Rotation2d.fromDegrees(0)
+      )));
     /* 
     // (Condition) ? Return-On-True : Return-on-False
     drivebase.setDefaultCommand(!RobotBase.isSimulation() ?
