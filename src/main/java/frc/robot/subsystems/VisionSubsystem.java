@@ -28,10 +28,10 @@ public class VisionSubsystem extends SubsystemBase{
 
     //Field-oriented pose estimate:
     private LimelightHelpers.PoseEstimate m_FieldPose;
+    double m_LLTimestamp;
 
     //Memory lock to prevent race conditions
-    private ReentrantLock positionLock = new ReentrantLock();
-    private ReentrantLock timeLock = new ReentrantLock();
+    private ReentrantLock lock = new ReentrantLock();
 
     private final String LL_NAME;
 
@@ -54,9 +54,9 @@ public class VisionSubsystem extends SubsystemBase{
         SmartDashboard.putNumber("Heading", heading);
         LimelightHelpers.SetRobotOrientation(LL_NAME, heading+180, 0, 0, 0, 0, 0);
         
-        positionLock.lock();
+        lock.lock();
         m_FieldPose = newEstimate;
-        positionLock.unlock();
+        lock.unlock();
         if(newEstimate == null){
             SmartDashboard.putString("LL Status", "No estimate!");
             return;
@@ -82,23 +82,14 @@ public class VisionSubsystem extends SubsystemBase{
     }
 
     //Use this function to fetch the current pose of the robot estimated by limelight
-    public Pose2d GetVisionPosition(){
-        Pose2d updatedEstimate;
-        positionLock.lock();
+    public LimelightHelpers.PoseEstimate GetVisionEstimate(){
+        LimelightHelpers.PoseEstimate updatedEstimate;
+        lock.lock();
         if(m_FieldPose == null){
-            positionLock.unlock();
-            return null;
+            updatedEstimate = new LimelightHelpers.PoseEstimate();
         }
-        updatedEstimate = m_FieldPose.pose;
-        positionLock.unlock();
+        updatedEstimate = m_FieldPose;
+        lock.unlock();
         return updatedEstimate;
-    }
-
-    public double GetVisionTimestamp() {
-        double timestamp;
-        timeLock.lock();
-        timestamp = newEstimate.timestampSeconds;
-        timeLock.unlock();
-        return timestamp;
     }
 }
