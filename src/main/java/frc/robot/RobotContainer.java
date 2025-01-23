@@ -22,6 +22,7 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.commands.swervedrive.drivebase.AbsoluteDriveAdv;
 import frc.robot.subsystems.SwerveSubsystem;
+import frc.robot.subsystems.VisionSubsystem;
 
 import java.io.File;
 import swervelib.SwerveInputStream;
@@ -39,6 +40,7 @@ public class RobotContainer
   // The robot's subsystems and commands are defined here...
   private final SwerveSubsystem       drivebase  = new SwerveSubsystem(new File(Filesystem.getDeployDirectory(),
                                                                                 "swerve/main"));
+  private final VisionSubsystem visionSubsystem = new VisionSubsystem("limelight");
 
   private final SendableChooser<Command> autoChooser;
   // Applies deadbands and inverts controls because joysticks
@@ -160,7 +162,7 @@ public class RobotContainer
       .b()
       .onTrue(drivebase.driveToPose(
         new Pose2d(
-          new Translation2d(550, 160),
+          16.5-13.9, 8-4,
           Rotation2d.fromDegrees(0)
       )));
     /* 
