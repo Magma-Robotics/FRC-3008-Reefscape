@@ -752,6 +752,7 @@ public class SwerveSubsystem extends SubsystemBase
   }
 
   public void addVisionReading() {
-    swerveDrive.addVisionMeasurement(visionSubsystem.GetVisionPosition(), visionSubsystem.GetVisionTimestamp(), VecBuilder.fill(.7,.7,9999999));
+    LimelightHelpers.PoseEstimate VisionEstimate = visionSubsystem.GetVisionEstimate();
+    swerveDrive.addVisionMeasurement(VisionEstimate.pose, VisionEstimate.timestampSeconds, VecBuilder.fill(.7,.7,9999999));
   }
 }
