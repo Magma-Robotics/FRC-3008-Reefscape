@@ -1,10 +1,15 @@
 package frc.robot.subsystems;
 
 import com.revrobotics.spark.SparkLowLevel.MotorType;
+import com.revrobotics.spark.config.SparkFlexConfig;
 import com.revrobotics.spark.config.SparkMaxConfig;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.RelativeEncoder;
+import com.revrobotics.spark.ClosedLoopSlot;
+import com.revrobotics.spark.SparkClosedLoopController;
+import com.revrobotics.spark.SparkFlex;
 import com.revrobotics.spark.SparkMax;
+import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
 
@@ -16,41 +21,48 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 
 public class Elevator extends SubsystemBase {
-    private SparkMax leftElevator, rightElevator;
-    private SparkMaxConfig leftElevatorConfig, rightElevatorConfig = new SparkMaxConfig();
+    private SparkFlexConfig leftElevatorConfig, rightElevatorConfig = new SparkFlexConfig();
 
-    private RelativeEncoder leftElevatorEncoder, rightElevatorEncoder;
+    private SparkFlex leftElevator = new SparkFlex(Constants.CANIds.kLeftElevatorID, MotorType.kBrushless);
+    private SparkClosedLoopController elevatorController = leftElevator.getClosedLoopController();
+    private RelativeEncoder leftElevatorEncoder = leftElevator.getEncoder();
 
-    private ProfiledPIDController elevatorPIDController =
-        new ProfiledPIDController(
-            0, 0, 0,
-            new TrapezoidProfile.Constraints(5, 5)
-        );
+    private SparkFlex rightElevator = new SparkFlex(Constants.CANIds.kRightElevatorID, MotorType.kBrushless);
+    private RelativeEncoder rightElevatorEncoder = rightElevator.getEncoder();
 
     private ElevatorFeedforward elevatorFeedforward = 
         new ElevatorFeedforward(0, 0, 0);
 
     public Elevator() {
-        //set CAN IDs
-        leftElevator = new SparkMax(Constants.CANIds.kLeftElevatorID, MotorType.kBrushless);
-        rightElevator = new SparkMax(Constants.CANIds.kRightElevatorID, MotorType.kBrushless);
-
         //create configs
         leftElevatorConfig
             .inverted(false)
             .idleMode(IdleMode.kBrake);
+        leftElevatorConfig
+            .encoder
+            .positionConversionFactor(Constants.Elevator.PositionConversionFactor);
         rightElevatorConfig
             .inverted(false)
             .idleMode(IdleMode.kBrake)
             .follow(leftElevator);
+        rightElevatorConfig
+            .encoder
+            .positionConversionFactor(Constants.Elevator.PositionConversionFactor);
 
         //sets configs
         leftElevator.configure(leftElevatorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
         rightElevator.configure(rightElevatorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+    }
 
-        //gets encoders
-        leftElevatorEncoder = leftElevator.getEncoder();
-        rightElevatorEncoder = rightElevator.getEncoder();
+    public void reachElevatorTarget(double target) {
+        elevatorController.setReference((target-Constants.Elevator.elevatorHeightOffGround),
+                                        ControlType.kMAXMotionPositionControl,
+                                        ClosedLoopSlot.kSlot0,
+                                        elevatorFeedforward.calculate(leftElevatorEncoder.getVelocity()));
+    }
+
+    public Command setElevatorTarget(double target) {
+        return run(() -> reachElevatorTarget(target));
     }
 
     public void getLeftElevatorEncoderPos() {
@@ -63,24 +75,5 @@ public class Elevator extends SubsystemBase {
 
     public void stopElevator() {
         leftElevator.set(0);
-    }
-
-    //sets target and runs elevator motor
-    public Command setElevatorTarget(double target) {
-        return runOnce(
-            () -> {
-                elevatorPIDController.setGoal(target);
-            }
-        )
-        .andThen(
-            run(
-                () -> {
-                    leftElevator.setVoltage(
-                        elevatorPIDController.calculate(leftElevatorEncoder.getPosition()) 
-                        + elevatorFeedforward.calculate(elevatorPIDController.getSetpoint().velocity)
-                    );
-                }
-            )
-        );
     }
 }

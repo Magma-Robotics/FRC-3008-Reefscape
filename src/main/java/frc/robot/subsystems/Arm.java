@@ -1,12 +1,20 @@
 package frc.robot.subsystems;
 
 import com.revrobotics.RelativeEncoder;
+import com.revrobotics.spark.ClosedLoopSlot;
+import com.revrobotics.spark.SparkClosedLoopController;
+import com.revrobotics.spark.SparkFlex;
 import com.revrobotics.spark.SparkMax;
+import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
+import com.revrobotics.spark.config.EncoderConfig;
+import com.revrobotics.spark.config.SparkFlexConfig;
 import com.revrobotics.spark.config.SparkMaxConfig;
+import com.revrobotics.spark.config.ClosedLoopConfig.FeedbackSensor;
+import com.revrobotics.spark.config.MAXMotionConfig.MAXMotionPositionMode;
 
 import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.controller.ProfiledPIDController;
@@ -16,59 +24,98 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 
 public class Arm extends SubsystemBase {
-    private SparkMax armPivot, intakePivot, intake;
-    private SparkMaxConfig armPivotConfig, intakePivotConfig, intakeConfig = new SparkMaxConfig();
-    private RelativeEncoder armPivotEncoder, intakePivotEncoder;
-    private ProfiledPIDController armPivotPIDController =
-        new ProfiledPIDController(
-            0, 0, 0,
-            new TrapezoidProfile.Constraints(5, 5)
-        );
-    
-    private ProfiledPIDController intakePivotPIDController =
-        new ProfiledPIDController(
-            0, 0, 0,
-            new TrapezoidProfile.Constraints(5, 5)
-        );
 
-    private ArmFeedforward armFeedforward = 
-        new ArmFeedforward(0, 0, 0);
+    private SparkFlexConfig armPivotConfig, wristConfig = new SparkFlexConfig();
+    private SparkMaxConfig intakeConfig = new SparkMaxConfig();
 
-    private ArmFeedforward intakeFeedforward = 
-        new ArmFeedforward(0, 0, 0);
-    
+    //initialize arm pivot
+    private SparkFlex armPivot = 
+        new SparkFlex(Constants.CANIds.kArmPivotID, MotorType.kBrushless);
+    private SparkClosedLoopController armPivotController = armPivot.getClosedLoopController();
+    private RelativeEncoder armPivotEncoder = armPivot.getEncoder();
+
+    //initialize intake pivot
+    private SparkFlex wrist = 
+        new SparkFlex(Constants.CANIds.kWristID, MotorType.kBrushless);
+    private SparkClosedLoopController wristController = armPivot.getClosedLoopController();
+    private RelativeEncoder wristEncoder = armPivot.getEncoder();
+
+    //initialize intake motor
+    private SparkMax intake = 
+        new SparkMax(0, MotorType.kBrushless);
+    private RelativeEncoder intakeEncoder = armPivot.getEncoder();
 
     public Arm() {
-        //set CAN IDs
-        armPivot = new SparkMax(Constants.CANIds.kArmPivotID, MotorType.kBrushless);
-        intakePivot = new SparkMax(Constants.CANIds.kIntakePivotID, MotorType.kBrushless);
-
         //create configs
         armPivotConfig
             .inverted(false)
-            .idleMode(IdleMode.kBrake);
-        intakePivotConfig
+            .idleMode(IdleMode.kCoast)
+            .smartCurrentLimit(40)
+            .voltageCompensation(12);
+        armPivotConfig
+            .closedLoop
+            .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
+            .pid(0, 0, 0)
+            .outputRange(-1, 1)
+            .maxMotion
+            .maxVelocity(0)
+            .maxAcceleration(0)
+            .allowedClosedLoopError(0);
+        armPivotConfig
+            .encoder
+            .positionConversionFactor(Constants.Arm.ArmAngleConversionFactor);
+
+        wristConfig
             .inverted(false)
-            .idleMode(IdleMode.kBrake);
+            .idleMode(IdleMode.kCoast)
+            .smartCurrentLimit(40)
+            .voltageCompensation(12);
+        wristConfig
+            .closedLoop
+            .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
+            .pid(0, 0, 0)
+            .outputRange(-1, 1)
+            .maxMotion
+            .maxVelocity(0)
+            .maxAcceleration(0)
+            .allowedClosedLoopError(0);
+        wristConfig
+            .encoder
+            .positionConversionFactor(Constants.Arm.WristAngleConversionFactor);
+
         intakeConfig
             .inverted(false)
-            .idleMode(IdleMode.kBrake);
+            .idleMode(IdleMode.kBrake)
+            .smartCurrentLimit(40);
 
         //set configs for motors
         armPivot.configure(armPivotConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-        intakePivot.configure(intakePivotConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+        wrist.configure(wristConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+        intake.configure(intakeConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+    }
 
-        //gets encoders
-        armPivotEncoder = armPivot.getEncoder();
-        intakePivotEncoder = intakePivot.getEncoder();
+    public void reachArmPivotTarget(double target) {
+        armPivotController.setReference(target, ControlType.kMAXMotionPositionControl);
+    }
+
+    public Command setArmPivotTarget(double target) {
+        return run(() -> reachArmPivotTarget(target));
+    }
+
+    public void reachWristTarget(double target) {
+        wristController.setReference(target, ControlType.kMAXMotionPositionControl);
+    }
+
+    public Command setWristTarget(double target) {
+        return run(() -> reachWristTarget(target));
     }
 
     public void stopArmPivot() {
         armPivot.set(0);
     }
 
-    public void stopIntakePivot() {
-        intakePivot.set(0);
+    public void stopWrist() {
+        wrist.set(0);
     }
 
     public void stopIntake() {
@@ -87,55 +134,15 @@ public class Arm extends SubsystemBase {
         armPivotEncoder.setPosition(0);
     }
 
-    public void resetIntakePivotEncoder() {
-        intakePivotEncoder.setPosition(0);
+    public void resetWristEncoder() {
+        wristEncoder.setPosition(0);
     }
 
     public void getArmPivotEncoderPos() {
         armPivotEncoder.getPosition();
     }
 
-    public void getIntakePivotEncoderPos() {
-        intakePivotEncoder.getPosition();
+    public void getwristEncoderPos() {
+        wristEncoder.getPosition();
     }
-
-    //sets target and runs arm pivot motor
-    public Command setArmPivotTarget(double target) {
-        return runOnce(
-            () -> {
-                armPivotPIDController.setGoal(target);
-            }
-        )
-        .andThen(
-            run(
-                () -> {
-                    //need to program a way to calculate angle of arm
-                    armPivot.setVoltage(
-                        armPivotPIDController.calculate(armPivotEncoder.getPosition()) 
-                        + armFeedforward.calculate(0, armPivotPIDController.getSetpoint().velocity)
-                    );
-                }
-            )
-        );
-    }
-
-    //sets target and runs intake pivot motor
-    public Command setIntakePivotTarget(double target) {
-        return runOnce(
-            () -> {
-                intakePivotPIDController.setGoal(target);
-            }
-        )
-        .andThen(
-            run(
-                () -> {
-                    armPivot.setVoltage(
-                        intakePivotPIDController.calculate(intakePivotEncoder.getPosition()) 
-                        + intakeFeedforward.calculate(0, armPivotPIDController.getSetpoint().velocity)
-                    );
-                }
-            )
-        );
-    }
-
 }

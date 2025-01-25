@@ -51,8 +51,23 @@ public final class Constants
   
   public static class CANIds {
     public static final int kArmPivotID = 0;
-    public static final int kIntakePivotID = 0;
+    public static final int kWristID = 0;
     public static final int kLeftElevatorID = 0;
     public static final int kRightElevatorID = 0;
+  }
+
+  public static class Arm {
+    public static final double armGearRatio = 180;
+    public static final double wristGearRatio = 72;
+    public static final double ArmAngleConversionFactor = (1/armGearRatio)*360;
+    public static final double WristAngleConversionFactor = (1/wristGearRatio)*360;
+  }
+
+  public static class Elevator {
+    //everything in inches
+    public static final double gearRatio = 10.20408;
+    public static final double wheelDiameter = 1.756;
+    public static final double PositionConversionFactor = ((Math.PI*wheelDiameter)/gearRatio)*2;
+    public static final double elevatorHeightOffGround = 9;
   }
 }
