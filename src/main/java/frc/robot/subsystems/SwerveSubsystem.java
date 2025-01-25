@@ -75,6 +75,7 @@ public class SwerveSubsystem extends SubsystemBase
    * Enable vision odometry updates while driving.
    */
   private final boolean             visionDriveTest     = false;
+  private boolean b_IsPositionCameraInitalized;
 
   private final VisionSubsystem visionSubsystem = new VisionSubsystem("limelight");
   /**
@@ -146,20 +147,16 @@ public class SwerveSubsystem extends SubsystemBase
   @Override
   public void periodic()
   {
-    /*
-    // When vision is enabled we must manually update odometry in SwerveDrive
-    if (visionDriveTest)
-    {
-      swerveDrive.updateOdometry();
-//      vision.updatePoseEstimation(swerveDrive);
-    }*/
-    /*
-    try {
-      resetOdometry(visionSubsystem.GetVisionPosition());
+    //Check to see if have been camera initalized
+    if(!b_IsPositionCameraInitalized){
+      //If here, robot position was not initalized by the camera yet
+      LimelightHelpers.PoseEstimate initEstimate = visionSubsystem.GetVisionEstimate();
+      if(initEstimate != null){ //Check if subsystem is givng actual values
+        //Reset swerve drive odometry to camera pose
+        resetOdometry(initEstimate.pose);
+        b_IsPositionCameraInitalized = true;
+      }
     }
-    catch(Exception e) {
-    }*/
-
     addVisionReading();
     SmartDashboard.putNumber("X Pos", getPose().getX());
     SmartDashboard.putNumber("Y Pos", getPose().getY());
