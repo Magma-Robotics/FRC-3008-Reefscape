@@ -1,9 +1,9 @@
 package frc.robot.subsystems;
 
-import edu.wpi.first.math.geometry.Pose2d;
 //FIRST Library imports
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.math.geometry.Pose2d;
 
 //Limelight library imports
 import frc.robot.LimelightHelpers;
@@ -28,15 +28,11 @@ public class VisionSubsystem extends SubsystemBase{
 
     //Field-oriented pose estimate:
     private LimelightHelpers.PoseEstimate m_FieldPose;
-    double m_LLTimestamp;
 
     //Memory lock to prevent race conditions
     private ReentrantLock lock = new ReentrantLock();
 
     private final String LL_NAME;
-
-    LimelightHelpers.PoseEstimate newEstimate = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2("limelight");
-
     //Gyro
     private AHRS navX = new AHRS(AHRS.NavXComType.kMXP_SPI, AHRS.NavXUpdateRate.k50Hz);
 
@@ -52,18 +48,17 @@ public class VisionSubsystem extends SubsystemBase{
     public void periodic() {
         double heading = navX.getAngle();
         SmartDashboard.putNumber("Heading", heading);
-        LimelightHelpers.SetRobotOrientation(LL_NAME, heading+180, 0, 0, 0, 0, 0);
-        
+        LimelightHelpers.SetRobotOrientation(LL_NAME, heading, 0, 0, 0, 0, 0);
+        LimelightHelpers.PoseEstimate newEstimate = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(LL_NAME);
         lock.lock();
         m_FieldPose = newEstimate;
         lock.unlock();
         if(newEstimate == null){
+            //If here, camera is not ready, do nothing
             SmartDashboard.putString("LL Status", "No estimate!");
             return;
         }
-        else{
-            SmartDashboard.putString("LL Status", "Generating estimates...");
-        }
+        SmartDashboard.putString(LL_NAME + " status", "Generating estimates...");
         //Code below is for data display purposes only
         SmartDashboard.putNumber("VisionPose_X", newEstimate.pose.getX());
         SmartDashboard.putNumber("VisionPose_Y", newEstimate.pose.getY());
@@ -85,9 +80,6 @@ public class VisionSubsystem extends SubsystemBase{
     public LimelightHelpers.PoseEstimate GetVisionEstimate(){
         LimelightHelpers.PoseEstimate updatedEstimate;
         lock.lock();
-        if(m_FieldPose == null){
-            updatedEstimate = new LimelightHelpers.PoseEstimate();
-        }
         updatedEstimate = m_FieldPose;
         lock.unlock();
         return updatedEstimate;
