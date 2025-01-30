@@ -4,6 +4,9 @@ import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.config.SparkFlexConfig;
 import com.revrobotics.spark.config.SparkMaxConfig;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
+
+import static edu.wpi.first.units.Units.Inches;
+
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.spark.ClosedLoopSlot;
 import com.revrobotics.spark.SparkClosedLoopController;
@@ -55,7 +58,7 @@ public class Elevator extends SubsystemBase {
     }
 
     public void reachElevatorTarget(double target) {
-        elevatorController.setReference((target-Constants.Elevator.elevatorHeightOffGround),
+        elevatorController.setReference((target-Constants.Elevator.elevatorHeightOffGround.in(Inches)),
                                         ControlType.kMAXMotionPositionControl,
                                         ClosedLoopSlot.kSlot0,
                                         elevatorFeedforward.calculate(leftElevatorEncoder.getVelocity()));
@@ -63,6 +66,30 @@ public class Elevator extends SubsystemBase {
 
     public Command setElevatorTarget(double target) {
         return run(() -> reachElevatorTarget(target));
+    }
+
+    public void setElevatorState(Constants.RobotStates.CoralStates state)  {
+        switch(state) {
+            case C_STOW:
+                reachElevatorTarget(Constants.Elevator.C_STOW_POS);
+                break;
+            
+            case C_L1:
+                reachElevatorTarget(Constants.Elevator.C_L1_POS);
+                break;
+            
+            case C_L2:
+                reachElevatorTarget(Constants.Elevator.C_L2_POS);
+                break;
+            
+            case C_L3:
+                reachElevatorTarget(Constants.Elevator.C_L3_POS);
+                break;
+
+            case C_L4:
+                reachElevatorTarget(Constants.Elevator.C_L4_POS);
+                break;
+        }
     }
 
     public void getLeftElevatorEncoderPos() {

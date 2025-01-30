@@ -9,6 +9,7 @@ import static edu.wpi.first.units.Units.Inches;
 
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.units.measure.Distance;
 import swervelib.math.Matter;
 
 /**
@@ -65,14 +66,18 @@ public final class Constants
     public static final double ArmAngleConversionFactor = (1/armGearRatio)*360;
     public static final double WristAngleConversionFactor = (1/wristGearRatio)*360;
     public static final double C_STOW_ANGLE = 0;
+    public static final double C_L1_ANGLE = 0;
+    public static final double C_L2_ANGLE = 0;
+    public static final double C_L3_ANGLE = 0;
+    public static final double C_L4_ANGLE = 0;
   }
 
   public static class Elevator {
     //everything in inches
     public static final double gearRatio = 10.20408;
-    public static final double wheelDiameter = 1.756;
-    public static final double PositionConversionFactor = ((Math.PI*wheelDiameter)/gearRatio)*2;
-    public static final double elevatorHeightOffGround = 9;
+    public static final Distance wheelDiameter = Inches.of(1.756);
+    public static final double PositionConversionFactor = ((Math.PI*wheelDiameter.in(Inches))/gearRatio)*2;
+    public static final Distance elevatorHeightOffGround = Inches.of(9);
     public static final double C_STOW_POS = 0;
     public static final double C_L1_POS = Centimeters.of(46).in(Inches);
     public static final double C_L2_POS = Centimeters.of(81).in(Inches);

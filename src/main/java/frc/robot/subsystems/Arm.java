@@ -102,6 +102,30 @@ public class Arm extends SubsystemBase {
         return run(() -> reachArmPivotTarget(target));
     }
 
+    public void setArmPivotState(Constants.RobotStates.CoralStates state)  {
+        switch(state) {
+            case C_STOW:
+                reachArmPivotTarget(Constants.Arm.C_STOW_ANGLE);
+                break;
+            
+            case C_L1:
+                reachArmPivotTarget(Constants.Arm.C_L1_ANGLE);
+                break;
+            
+            case C_L2:
+                reachArmPivotTarget(Constants.Arm.C_L2_ANGLE);
+                break;
+            
+            case C_L3:
+                reachArmPivotTarget(Constants.Arm.C_L3_ANGLE);
+                break;
+
+            case C_L4:
+                reachArmPivotTarget(Constants.Arm.C_L4_ANGLE);
+                break;
+        }
+    }
+
     public void reachWristTarget(double target) {
         wristController.setReference(target, ControlType.kMAXMotionPositionControl);
     }
