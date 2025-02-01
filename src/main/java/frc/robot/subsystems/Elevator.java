@@ -57,6 +57,18 @@ public class Elevator extends SubsystemBase {
         rightElevator.configure(rightElevatorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
     }
 
+    public Command elevatorUp() {
+        return runOnce(() -> leftElevator.set(1));
+    }
+
+    public Command elevatorDown() {
+        return runOnce(() -> leftElevator.set(-1));
+    }
+
+    public Command stopElevator() {
+        return runOnce(() -> leftElevator.set(0));
+    }
+
     public void reachElevatorTarget(double target) {
         elevatorController.setReference((target-Constants.Elevator.elevatorHeightOffGround.in(Inches)),
                                         ControlType.kMAXMotionPositionControl,
@@ -89,6 +101,10 @@ public class Elevator extends SubsystemBase {
             case C_L4:
                 reachElevatorTarget(Constants.Elevator.C_L4_POS);
                 break;
+                
+            case LOAD:
+                reachElevatorTarget(Constants.Elevator.LOADING_POS);
+                break;
         }
     }
 
@@ -98,9 +114,5 @@ public class Elevator extends SubsystemBase {
 
     public void resetLeftElevatorEncoder() {
         leftElevatorEncoder.setPosition(0);
-    }
-
-    public void stopElevator() {
-        leftElevator.set(0);
     }
 }

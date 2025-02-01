@@ -58,18 +58,29 @@ public final class Constants
     public static final int kWristID = 0;
     public static final int kLeftElevatorID = 0;
     public static final int kRightElevatorID = 0;
+    public static final int kHangID = 0;
   }
 
   public static class Arm {
     public static final double armGearRatio = 180;
-    public static final double wristGearRatio = 72;
     public static final double ArmAngleConversionFactor = (1/armGearRatio)*360;
+    public static final double C_STOW_ANGLE = 0;
+    public static final double C_L1_ANGLE = 0;
+    public static final double C_L2_ANGLE = 0;
+    public static final double C_L3_ANGLE = 0;
+    public static final double C_L4_ANGLE = 0;
+    public static final double LOADING_ANGLE = 0;
+  }
+
+  public static class Wrist {
+    public static final double wristGearRatio = 72;
     public static final double WristAngleConversionFactor = (1/wristGearRatio)*360;
     public static final double C_STOW_ANGLE = 0;
     public static final double C_L1_ANGLE = 0;
     public static final double C_L2_ANGLE = 0;
     public static final double C_L3_ANGLE = 0;
     public static final double C_L4_ANGLE = 0;
+    public static final double LOADING_ANGLE = 0;
   }
 
   public static class Elevator {
@@ -83,6 +94,7 @@ public final class Constants
     public static final double C_L2_POS = Centimeters.of(81).in(Inches);
     public static final double C_L3_POS = Centimeters.of(121).in(Inches);
     public static final double C_L4_POS = Centimeters.of(183).in(Inches);
+    public static final double LOADING_POS = 0;
   }
 
   public static class RobotStates {
@@ -91,7 +103,8 @@ public final class Constants
       C_L1,
       C_L2,
       C_L3,
-      C_L4;
+      C_L4,
+      LOAD;
     }
   }
 }

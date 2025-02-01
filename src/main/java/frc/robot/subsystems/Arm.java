@@ -22,6 +22,8 @@ import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
+import frc.robot.Constants.Wrist;
+import frc.robot.Constants.RobotStates.CoralStates;
 
 public class Arm extends SubsystemBase {
 
@@ -81,7 +83,7 @@ public class Arm extends SubsystemBase {
             .allowedClosedLoopError(0);
         wristConfig
             .encoder
-            .positionConversionFactor(Constants.Arm.WristAngleConversionFactor);
+            .positionConversionFactor(Constants.Wrist.WristAngleConversionFactor);
 
         intakeConfig
             .inverted(false)
@@ -92,6 +94,18 @@ public class Arm extends SubsystemBase {
         armPivot.configure(armPivotConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
         wrist.configure(wristConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
         intake.configure(intakeConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+    }
+
+    public Command intakeCoral() {
+        return runOnce(() -> intake.set(1));
+    }
+
+    public Command outtakeCoral() {
+        return runOnce(() -> intake.set(-1));
+    }
+
+    public Command stopIntake() {
+        return runOnce(() -> intake.set(0));
     }
 
     public void reachArmPivotTarget(double target) {
@@ -123,6 +137,38 @@ public class Arm extends SubsystemBase {
             case C_L4:
                 reachArmPivotTarget(Constants.Arm.C_L4_ANGLE);
                 break;
+
+            case LOAD:
+                reachArmPivotTarget(Constants.Arm.LOADING_ANGLE);
+                break;
+        }
+    }
+
+    public void setWristState(CoralStates state) {
+        switch(state) {
+            case C_STOW:
+                reachWristTarget(Wrist.C_STOW_ANGLE);
+                break;
+            
+            case C_L1:
+                reachWristTarget(Wrist.C_L1_ANGLE);
+                break;
+            
+            case C_L2:
+                reachWristTarget(Wrist.C_L2_ANGLE);
+                break;
+            
+            case C_L3:
+                reachWristTarget(Wrist.C_L3_ANGLE);
+                break;
+
+            case C_L4:
+                reachWristTarget(Wrist.C_L4_ANGLE);
+                break;
+
+            case LOAD:
+                reachArmPivotTarget(Wrist.LOADING_ANGLE);
+                break;
         }
     }
 
@@ -132,26 +178,6 @@ public class Arm extends SubsystemBase {
 
     public Command setWristTarget(double target) {
         return run(() -> reachWristTarget(target));
-    }
-
-    public void stopArmPivot() {
-        armPivot.set(0);
-    }
-
-    public void stopWrist() {
-        wrist.set(0);
-    }
-
-    public void stopIntake() {
-        intake.set(0);
-    }
-
-    public void intake() {
-        intake.set(0.4);
-    }
-
-    public void outtake() {
-        intake.set(-0.4);
     }
 
     public void resetArmPivotEncoder() {

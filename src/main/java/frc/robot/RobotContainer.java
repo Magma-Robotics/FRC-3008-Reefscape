@@ -20,8 +20,12 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.OperatorConstants;
+import frc.robot.Constants.RobotStates.CoralStates;
+import frc.robot.commands.SetCoralState;
 import frc.robot.commands.swervedrive.drivebase.AbsoluteDriveAdv;
+import frc.robot.subsystems.Arm;
 import frc.robot.subsystems.Elevator;
+import frc.robot.subsystems.Hang;
 import frc.robot.subsystems.SwerveSubsystem;
 import frc.robot.subsystems.VisionSubsystem;
 
@@ -38,11 +42,15 @@ public class RobotContainer
 
   // Replace with CommandPS4Controller or CommandJoystick if needed
   final         CommandXboxController driverXbox = new CommandXboxController(0);
+  final CommandXboxController driverPartnerXbox = new CommandXboxController(1);
+
   // The robot's subsystems and commands are defined here...
   private final SwerveSubsystem       drivebase  = new SwerveSubsystem(new File(Filesystem.getDeployDirectory(),
                                                                                 "swerve/main"));
   private final VisionSubsystem visionSubsystem = new VisionSubsystem("limelight");
   private final Elevator elevator = new Elevator();
+  private final Arm arm = new Arm();
+  private final Hang hang = new Hang();
   private final SendableChooser<Command> autoChooser;
   // Applies deadbands and inverts controls because joysticks
   // are back-right positive while robot
@@ -166,6 +174,63 @@ public class RobotContainer
           16.5-13.9, 8-4,
           Rotation2d.fromDegrees(0)
       )));
+
+    driverXbox
+      .rightBumper()
+      .onTrue(hang.hangUp())
+      .onFalse(hang.stopHang());
+
+    driverXbox
+      .rightTrigger(0.1)
+      .onTrue(hang.hangDown())
+      .onFalse(hang.stopHang());
+    
+    driverPartnerXbox
+      .povLeft()
+      .onTrue(new SetCoralState(arm, elevator, CoralStates.C_STOW));
+
+    driverPartnerXbox
+      .povRight()
+      .onTrue(new SetCoralState(arm, elevator, CoralStates.LOAD));
+
+    //outtake
+    driverPartnerXbox
+      .leftTrigger(0.1)
+      .onTrue(arm.outtakeCoral())
+      .onFalse(arm.stopIntake());
+
+    //intake
+    driverPartnerXbox
+      .rightTrigger(0.1)
+      .onTrue(arm.intakeCoral())
+      .onFalse(arm.stopIntake());
+
+    //elevator down
+    driverPartnerXbox
+      .povDown()
+      .onTrue(Commands.none());
+
+    //elevator up
+    driverPartnerXbox
+      .povUp()
+      .onTrue(Commands.none());
+
+    driverPartnerXbox
+      .a()
+      .onTrue(new SetCoralState(arm, elevator, CoralStates.C_L1));
+
+    driverPartnerXbox
+      .b()
+      .onTrue(new SetCoralState(arm, elevator, CoralStates.C_L2));
+    
+    driverPartnerXbox
+      .y()
+      .onTrue(new SetCoralState(arm, elevator, CoralStates.C_L3));
+
+    driverPartnerXbox
+      .x()
+      .onTrue(new SetCoralState(arm, elevator, CoralStates.C_L3));
+
     /* 
     // (Condition) ? Return-On-True : Return-on-False
     drivebase.setDefaultCommand(!RobotBase.isSimulation() ?
