@@ -164,6 +164,8 @@ public class RobotContainer
       .and(driverXbox.rightBumper())
       .whileTrue(drivebase.sysIdDriveMotorCommand());*/
 
+     
+    /* 
     driverXbox
       .start()
       .onTrue(Commands.runOnce(drivebase::zeroGyro));
@@ -191,7 +193,7 @@ public class RobotContainer
 
     driverPartnerXbox
       .povRight()
-      .onTrue(new SetCoralState(arm, elevator, CoralStates.LOAD));
+      .onTrue(new SetCoralState(arm, elevator, CoralStates.C_LOAD));
 
     //outtake
     driverPartnerXbox
@@ -230,7 +232,7 @@ public class RobotContainer
     driverPartnerXbox
       .x()
       .onTrue(new SetCoralState(arm, elevator, CoralStates.C_L3));
-
+*/
     /* 
     // (Condition) ? Return-On-True : Return-on-False
     drivebase.setDefaultCommand(!RobotBase.isSimulation() ?

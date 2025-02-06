@@ -19,6 +19,7 @@ import com.revrobotics.spark.config.MAXMotionConfig.MAXMotionPositionMode;
 import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
@@ -35,60 +36,65 @@ public class Arm extends SubsystemBase {
         new SparkFlex(Constants.CANIds.kArmPivotID, MotorType.kBrushless);
     private SparkClosedLoopController armPivotController = armPivot.getClosedLoopController();
     private RelativeEncoder armPivotEncoder = armPivot.getEncoder();
+    public static double kArmP = 0;
+    public static double kArmI = 0;
+    public static double kArmD = 0;
+    public static double armAngleSetPoint = 0;
 
     //initialize intake pivot
     private SparkFlex wrist = 
         new SparkFlex(Constants.CANIds.kWristID, MotorType.kBrushless);
     private SparkClosedLoopController wristController = armPivot.getClosedLoopController();
-    private RelativeEncoder wristEncoder = armPivot.getEncoder();
+    private RelativeEncoder wristEncoder = wrist.getEncoder();
+    public static double kWristP = 0;
+    public static double kWristI = 0;
+    public static double kWristD = 0;
+    public static double wristAngleSetPoint = 0;
 
     //initialize intake motor
     private SparkMax intake = 
-        new SparkMax(0, MotorType.kBrushless);
-    private RelativeEncoder intakeEncoder = armPivot.getEncoder();
+        new SparkMax(Constants.CANIds.kCoralIntakeID, MotorType.kBrushless);
+    private RelativeEncoder intakeEncoder = intake.getEncoder();
 
     public Arm() {
         //create configs
         armPivotConfig
             .inverted(false)
-            .idleMode(IdleMode.kCoast)
-            .smartCurrentLimit(40)
-            .voltageCompensation(12);
+            .idleMode(IdleMode.kBrake);
         armPivotConfig
             .closedLoop
             .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
-            .pid(0, 0, 0)
+            .pid(kArmP, kArmI, kArmD)
             .outputRange(-1, 1)
             .maxMotion
-            .maxVelocity(0)
-            .maxAcceleration(0)
-            .allowedClosedLoopError(0);
+            .maxVelocity(10)
+            .maxAcceleration(5)
+            .allowedClosedLoopError(5);
         armPivotConfig
             .encoder
             .positionConversionFactor(Constants.Arm.ArmAngleConversionFactor);
 
         wristConfig
             .inverted(false)
-            .idleMode(IdleMode.kCoast)
+            .idleMode(IdleMode.kBrake)
             .smartCurrentLimit(40)
             .voltageCompensation(12);
         wristConfig
             .closedLoop
             .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
-            .pid(0, 0, 0)
+            .pid(kWristP, kWristI, kWristD)
             .outputRange(-1, 1)
             .maxMotion
-            .maxVelocity(0)
-            .maxAcceleration(0)
-            .allowedClosedLoopError(0);
+            .maxVelocity(10)
+            .maxAcceleration(5)
+            .allowedClosedLoopError(5);
         wristConfig
             .encoder
             .positionConversionFactor(Constants.Wrist.WristAngleConversionFactor);
 
         intakeConfig
             .inverted(false)
-            .idleMode(IdleMode.kBrake)
-            .smartCurrentLimit(40);
+            .idleMode(IdleMode.kBrake);
 
         //set configs for motors
         armPivot.configure(armPivotConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
@@ -138,8 +144,8 @@ public class Arm extends SubsystemBase {
                 reachArmPivotTarget(Constants.Arm.C_L4_ANGLE);
                 break;
 
-            case LOAD:
-                reachArmPivotTarget(Constants.Arm.LOADING_ANGLE);
+            case C_LOAD:
+                reachArmPivotTarget(Constants.Arm.C_LOADING_ANGLE);
                 break;
         }
     }
@@ -166,8 +172,8 @@ public class Arm extends SubsystemBase {
                 reachWristTarget(Wrist.C_L4_ANGLE);
                 break;
 
-            case LOAD:
-                reachArmPivotTarget(Wrist.LOADING_ANGLE);
+            case C_LOAD:
+                reachArmPivotTarget(Wrist.C_LOADING_ANGLE);
                 break;
         }
     }
@@ -188,11 +194,30 @@ public class Arm extends SubsystemBase {
         wristEncoder.setPosition(0);
     }
 
-    public void getArmPivotEncoderPos() {
-        armPivotEncoder.getPosition();
+    public double getArmPivotEncoderPos() {
+        return armPivotEncoder.getPosition();
     }
 
-    public void getwristEncoderPos() {
-        wristEncoder.getPosition();
+    public double getwristEncoderPos() {
+        return wristEncoder.getPosition();
+    }
+
+    @Override
+    public void periodic() {
+        SmartDashboard.putNumber("Arm Position", armPivotEncoder.getPosition());
+        SmartDashboard.putNumber("Wrist Position", wristEncoder.getPosition());
+
+        SmartDashboard.putNumber("kArmP", kArmP);
+        SmartDashboard.putNumber("kArmI", kArmI);
+        SmartDashboard.putNumber("kArmD", kArmD);
+        SmartDashboard.putNumber("ArmAngleSetpoint", armAngleSetPoint);
+
+        SmartDashboard.putNumber("kWristP", kWristP);
+        SmartDashboard.putNumber("kWristI", kWristI);
+        SmartDashboard.putNumber("kWristD", kWristD);
+        SmartDashboard.putNumber("WristAngleSetpoint", wristAngleSetPoint);
+
+        reachArmPivotTarget(armAngleSetPoint);
+        //reachWristTarget(wristAngleSetPoint);
     }
 }

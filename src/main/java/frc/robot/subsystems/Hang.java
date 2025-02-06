@@ -24,11 +24,11 @@ public class Hang extends SubsystemBase {
     }
 
     public Command hangUp() {
-        return runOnce(() -> hang.set(1));
+        return runOnce(() -> hang.set(0.4));
     }
 
     public Command hangDown() {
-        return runOnce(() -> hang.set(-1));
+        return runOnce(() -> hang.set(-0.4));
     }
 
     public Command stopHang() {

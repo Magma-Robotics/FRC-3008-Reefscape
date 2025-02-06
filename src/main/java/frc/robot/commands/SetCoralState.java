@@ -41,7 +41,7 @@ public class SetCoralState extends Command {
             case C_L4:
                 break; 
                 
-            case LOAD:
+            case C_LOAD:
                 break;
         }
     }

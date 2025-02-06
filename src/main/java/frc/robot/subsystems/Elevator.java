@@ -3,6 +3,7 @@ package frc.robot.subsystems;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.config.SparkFlexConfig;
 import com.revrobotics.spark.config.SparkMaxConfig;
+import com.revrobotics.spark.config.ClosedLoopConfig.FeedbackSensor;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 
 import static edu.wpi.first.units.Units.Inches;
@@ -19,6 +20,8 @@ import com.revrobotics.spark.SparkBase.ResetMode;
 import edu.wpi.first.math.controller.ElevatorFeedforward;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
+import edu.wpi.first.networktables.NetworkTable;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
@@ -29,6 +32,10 @@ public class Elevator extends SubsystemBase {
     private SparkFlex leftElevator = new SparkFlex(Constants.CANIds.kLeftElevatorID, MotorType.kBrushless);
     private SparkClosedLoopController elevatorController = leftElevator.getClosedLoopController();
     private RelativeEncoder leftElevatorEncoder = leftElevator.getEncoder();
+    public static double kElevatorP = 0;
+    public static double kElevatorI = 0;
+    public static double kElevatorD = 0;
+    public static double elevatorSetpoint = 0;
 
     private SparkFlex rightElevator = new SparkFlex(Constants.CANIds.kRightElevatorID, MotorType.kBrushless);
     private RelativeEncoder rightElevatorEncoder = rightElevator.getEncoder();
@@ -44,6 +51,16 @@ public class Elevator extends SubsystemBase {
         leftElevatorConfig
             .encoder
             .positionConversionFactor(Constants.Elevator.PositionConversionFactor);
+        leftElevatorConfig
+            .closedLoop
+            .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
+            .pid(kElevatorP, kElevatorI, kElevatorD)
+            .outputRange(-1, 1)
+            .maxMotion
+            .maxAcceleration(1)
+            .maxVelocity(1)
+            .allowedClosedLoopError(3);
+
         rightElevatorConfig
             .inverted(false)
             .idleMode(IdleMode.kBrake)
@@ -70,10 +87,7 @@ public class Elevator extends SubsystemBase {
     }
 
     public void reachElevatorTarget(double target) {
-        elevatorController.setReference((target-Constants.Elevator.elevatorHeightOffGround.in(Inches)),
-                                        ControlType.kMAXMotionPositionControl,
-                                        ClosedLoopSlot.kSlot0,
-                                        elevatorFeedforward.calculate(leftElevatorEncoder.getVelocity()));
+        elevatorController.setReference(target, ControlType.kMAXMotionPositionControl);
     }
 
     public Command setElevatorTarget(double target) {
@@ -102,17 +116,29 @@ public class Elevator extends SubsystemBase {
                 reachElevatorTarget(Constants.Elevator.C_L4_POS);
                 break;
                 
-            case LOAD:
-                reachElevatorTarget(Constants.Elevator.LOADING_POS);
+            case C_LOAD:
+                reachElevatorTarget(Constants.Elevator.C_LOADING_POS);
                 break;
         }
     }
 
-    public void getLeftElevatorEncoderPos() {
-        leftElevatorEncoder.getPosition();
+    public double getLeftElevatorEncoderPos() {
+        return leftElevatorEncoder.getPosition();
     }
 
     public void resetLeftElevatorEncoder() {
         leftElevatorEncoder.setPosition(0);
+    }
+
+    @Override
+    public void periodic() {
+        SmartDashboard.putNumber("Elevator Pos", getLeftElevatorEncoderPos());
+        SmartDashboard.putNumber("kElevatorP", kElevatorP);
+        SmartDashboard.putNumber("kElevatorI", kElevatorI);
+        SmartDashboard.putNumber("kElevatorD", kElevatorD);
+
+        SmartDashboard.putNumber("ElevatorSetpoint", elevatorSetpoint);
+
+        //reachElevatorTarget(elevatorSetpoint);
     }
 }

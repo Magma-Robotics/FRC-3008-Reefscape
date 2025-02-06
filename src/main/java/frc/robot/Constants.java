@@ -54,11 +54,14 @@ public final class Constants
   }
   
   public static class CANIds {
-    public static final int kArmPivotID = 0;
-    public static final int kWristID = 0;
-    public static final int kLeftElevatorID = 0;
-    public static final int kRightElevatorID = 0;
-    public static final int kHangID = 0;
+    public static final int kArmPivotID = 15;
+    public static final int kWristID = 16;
+    public static final int kCoralIntakeID = 17;
+    public static final int kLeftElevatorID = 13;
+    public static final int kRightElevatorID = 14;
+    public static final int kHangID = 20;
+    public static final int kAlgaePivotID = 18;
+    public static final int kAlgaeIntakeID = 19;
   }
 
   public static class Arm {
@@ -69,7 +72,7 @@ public final class Constants
     public static final double C_L2_ANGLE = 0;
     public static final double C_L3_ANGLE = 0;
     public static final double C_L4_ANGLE = 0;
-    public static final double LOADING_ANGLE = 0;
+    public static final double C_LOADING_ANGLE = 0;
   }
 
   public static class Wrist {
@@ -80,7 +83,7 @@ public final class Constants
     public static final double C_L2_ANGLE = 0;
     public static final double C_L3_ANGLE = 0;
     public static final double C_L4_ANGLE = 0;
-    public static final double LOADING_ANGLE = 0;
+    public static final double C_LOADING_ANGLE = 0;
   }
 
   public static class Elevator {
@@ -94,7 +97,15 @@ public final class Constants
     public static final double C_L2_POS = Centimeters.of(81).in(Inches);
     public static final double C_L3_POS = Centimeters.of(121).in(Inches);
     public static final double C_L4_POS = Centimeters.of(183).in(Inches);
-    public static final double LOADING_POS = 0;
+    public static final double C_LOADING_POS = 0;
+  }
+
+  public static class Algae {
+    public static final double gearRatio = 75;
+    public static final double AlgaePivotAngleConversionFactor = (1/gearRatio)*360;
+    public static final double A_STOW_ANGLE = 0;
+    public static final double A_PROCCESSOR_ANGLE = 0;
+    public static final double A_LOADING_ANGLE = 0;
   }
 
   public static class RobotStates {
@@ -104,7 +115,13 @@ public final class Constants
       C_L2,
       C_L3,
       C_L4,
-      LOAD;
+      C_LOAD;
+    }
+
+    public enum AlgaeStates {
+      A_STOW,
+      A_PROCCESSOR,
+      A_LOAD
     }
   }
 }
