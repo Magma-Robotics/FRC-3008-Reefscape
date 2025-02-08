@@ -23,7 +23,9 @@ import frc.robot.Constants.OperatorConstants;
 import frc.robot.Constants.RobotStates.CoralStates;
 import frc.robot.commands.SetCoralState;
 import frc.robot.commands.swervedrive.drivebase.AbsoluteDriveAdv;
+import frc.robot.subsystems.AlgaeSubsystem;
 import frc.robot.subsystems.Arm;
+import frc.robot.subsystems.CoralIntake;
 import frc.robot.subsystems.Elevator;
 import frc.robot.subsystems.Hang;
 import frc.robot.subsystems.SwerveSubsystem;
@@ -50,7 +52,9 @@ public class RobotContainer
   private final VisionSubsystem visionSubsystem = new VisionSubsystem("limelight");
   private final Elevator elevator = new Elevator();
   private final Arm arm = new Arm();
+  private final CoralIntake coralIntake = new CoralIntake();
   private final Hang hang = new Hang();
+  private final AlgaeSubsystem algaeSubsystem = new AlgaeSubsystem();
   private final SendableChooser<Command> autoChooser;
   // Applies deadbands and inverts controls because joysticks
   // are back-right positive while robot
@@ -153,7 +157,48 @@ public class RobotContainer
    */
   private void configureBindings()
   {
-    drivebase.setDefaultCommand(driveFieldOrientedAnglularVelocity);
+
+    driverXbox
+      .a()
+      .onTrue(algaeSubsystem.algaePivotDown())
+      .onFalse(algaeSubsystem.stopAlgaePivot());
+
+    driverXbox
+      .b()
+      .onTrue(algaeSubsystem.algaePivotUp())
+      .onFalse(algaeSubsystem.stopAlgaePivot());
+      
+    driverXbox
+      .x()
+      .onTrue(algaeSubsystem.intakeAlgae())
+      .onFalse(algaeSubsystem.stopAlgaeIntake());
+
+    driverXbox
+      .y()
+      .onTrue(algaeSubsystem.outtakeAlgae())
+      .onFalse(algaeSubsystem.stopAlgaeIntake());
+    /* 
+    driverXbox
+      .a()
+      .onTrue(elevator.elevatorUp())
+      .onFalse(elevator.stopElevator());
+
+    driverXbox
+      .b()
+      .onTrue(elevator.elevatorDown())
+      .onFalse(elevator.stopElevator());
+
+    driverXbox
+      .x()
+      .onTrue(coralIntake.intakeCoral())
+      .onFalse(coralIntake.stopIntake());
+
+    driverXbox
+      .y()
+      .onTrue(coralIntake.outtakeCoral())
+      .onFalse(coralIntake.stopIntake());
+*/
+    //drivebase.setDefaultCommand(driveFieldOrientedAnglularVelocity);
     //sys id tests on swerve drive
     /*driverXbox
       .a()
@@ -216,11 +261,13 @@ public class RobotContainer
     driverPartnerXbox
       .povUp()
       .onTrue(Commands.none());
-
+*/
+/* 
     driverPartnerXbox
       .a()
       .onTrue(new SetCoralState(arm, elevator, CoralStates.C_L1));
-
+      */
+/*
     driverPartnerXbox
       .b()
       .onTrue(new SetCoralState(arm, elevator, CoralStates.C_L2));
@@ -232,7 +279,7 @@ public class RobotContainer
     driverPartnerXbox
       .x()
       .onTrue(new SetCoralState(arm, elevator, CoralStates.C_L3));
-*/
+      */
     /* 
     // (Condition) ? Return-On-True : Return-on-False
     drivebase.setDefaultCommand(!RobotBase.isSimulation() ?

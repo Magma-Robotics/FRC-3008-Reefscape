@@ -17,6 +17,7 @@ import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.ElevatorFeedforward;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
@@ -24,10 +25,12 @@ import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants;
 
 public class Elevator extends SubsystemBase {
-    private SparkFlexConfig leftElevatorConfig, rightElevatorConfig = new SparkFlexConfig();
+    private SparkFlexConfig leftElevatorConfig = new SparkFlexConfig();
+    private SparkFlexConfig rightElevatorConfig = new SparkFlexConfig();
 
     private SparkFlex leftElevator = new SparkFlex(Constants.CANIds.kLeftElevatorID, MotorType.kBrushless);
     private SparkClosedLoopController elevatorController = leftElevator.getClosedLoopController();
@@ -46,11 +49,11 @@ public class Elevator extends SubsystemBase {
     public Elevator() {
         //create configs
         leftElevatorConfig
-            .inverted(false)
+            .inverted(true)
             .idleMode(IdleMode.kBrake);
         leftElevatorConfig
             .encoder
-            .positionConversionFactor(Constants.Elevator.PositionConversionFactor);
+            .positionConversionFactor(Constants.Elevator.kElevatorRotationsToInches);
         leftElevatorConfig
             .closedLoop
             .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
@@ -62,24 +65,26 @@ public class Elevator extends SubsystemBase {
             .allowedClosedLoopError(3);
 
         rightElevatorConfig
-            .inverted(false)
+            .inverted(true)
             .idleMode(IdleMode.kBrake)
             .follow(leftElevator);
         rightElevatorConfig
             .encoder
-            .positionConversionFactor(Constants.Elevator.PositionConversionFactor);
+            .positionConversionFactor(Constants.Elevator.kElevatorRotationsToInches);
 
         //sets configs
         leftElevator.configure(leftElevatorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
         rightElevator.configure(rightElevatorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+
+        SmartDashboard.putNumber("ElevatorSetpoint", elevatorSetpoint);
     }
 
     public Command elevatorUp() {
-        return runOnce(() -> leftElevator.set(1));
+        return runOnce(() -> leftElevator.set(0.6));
     }
 
     public Command elevatorDown() {
-        return runOnce(() -> leftElevator.set(-1));
+        return runOnce(() -> leftElevator.set(-0.6));
     }
 
     public Command stopElevator() {
@@ -130,15 +135,14 @@ public class Elevator extends SubsystemBase {
         leftElevatorEncoder.setPosition(0);
     }
 
+    public Trigger atHeight(double height, double tolerance) {
+        return new Trigger(() -> MathUtil.isNear(height, getLeftElevatorEncoderPos(), tolerance));
+    }
+
     @Override
     public void periodic() {
         SmartDashboard.putNumber("Elevator Pos", getLeftElevatorEncoderPos());
-        SmartDashboard.putNumber("kElevatorP", kElevatorP);
-        SmartDashboard.putNumber("kElevatorI", kElevatorI);
-        SmartDashboard.putNumber("kElevatorD", kElevatorD);
 
-        SmartDashboard.putNumber("ElevatorSetpoint", elevatorSetpoint);
-
-        //reachElevatorTarget(elevatorSetpoint);
+        //reachElevatorTarget(SmartDashboard.getNumber("ElevatorSetpoint", 0));
     }
 }

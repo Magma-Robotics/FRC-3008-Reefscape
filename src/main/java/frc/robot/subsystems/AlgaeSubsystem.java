@@ -17,7 +17,6 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
-import frc.robot.Constants.CANIds;
 
 public class AlgaeSubsystem extends SubsystemBase {
     private SparkFlexConfig algaePivotConfig = new SparkFlexConfig();
@@ -39,7 +38,7 @@ public class AlgaeSubsystem extends SubsystemBase {
     public AlgaeSubsystem() {
         //create configs
         algaePivotConfig
-            .inverted(false)
+            .inverted(true)
             .idleMode(IdleMode.kBrake)
             .smartCurrentLimit(40)
             .voltageCompensation(12);
@@ -54,10 +53,10 @@ public class AlgaeSubsystem extends SubsystemBase {
             .allowedClosedLoopError(5);
         algaePivotConfig
             .encoder
-            .positionConversionFactor(Constants.Algae.AlgaePivotAngleConversionFactor);
+            .positionConversionFactor(Constants.Algae.kAlgaePivotRotationsToDeg);
 
         algaeIntakeConfig
-            .inverted(false)
+            .inverted(true)
             .idleMode(IdleMode.kBrake)
             .smartCurrentLimit(40);
 
@@ -72,6 +71,30 @@ public class AlgaeSubsystem extends SubsystemBase {
 
     public Command setAlgaePivotAngle(double target) {
         return run(() -> reachAlgaePivotAngle(target));
+    }
+
+    public Command algaePivotDown() {
+        return run(() -> algaePivot.set(0.6));
+    }
+
+    public Command algaePivotUp() {
+        return run(() -> algaePivot.set(-0.6));
+    }
+
+    public Command stopAlgaePivot() {
+        return run(() -> algaePivot.set(0));
+    }
+
+    public Command intakeAlgae() {
+        return run(() -> algaeIntake.set(1));
+    }
+
+    public Command outtakeAlgae() {
+        return run(() -> algaeIntake.set(-1));
+    }
+
+    public Command stopAlgaeIntake() {
+        return run(() -> algaeIntake.set(0));
     }
 
     public void setAlgaePivotState(Constants.RobotStates.AlgaeStates state)  {
@@ -90,15 +113,16 @@ public class AlgaeSubsystem extends SubsystemBase {
         }
     }
 
+    public double getAlgaePivotPos() {
+        return algaePivotEncoder.getPosition();
+    }
+
     @Override
     public void periodic() {
         SmartDashboard.putNumber("AlgaePivot Position", algaePivotEncoder.getPosition());
-
-        SmartDashboard.putNumber("kAlgaePivotP", kAlgaePivotP);
-        SmartDashboard.putNumber("kAlgaePivotI", kAlgaePivotI);
-        SmartDashboard.putNumber("kAlgaePivotD", kAlgaePivotD);
-
         SmartDashboard.putNumber("AlgaePivotSetpoint", algaePivotSetpoint);
+
+        //reachAlgaePivotAngle(algaePivotSetpoint);
     }
 
 }

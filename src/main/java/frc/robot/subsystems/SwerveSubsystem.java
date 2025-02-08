@@ -157,7 +157,7 @@ public class SwerveSubsystem extends SubsystemBase
         b_IsPositionCameraInitalized = true;
       }
     }
-    addVisionReading();
+    //addVisionReading();
     SmartDashboard.putNumber("X Pos", getPose().getX());
     SmartDashboard.putNumber("Y Pos", getPose().getY());
     SmartDashboard.putNumber("Rotation", getPose().getRotation().getDegrees());

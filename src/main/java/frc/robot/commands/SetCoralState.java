@@ -30,6 +30,8 @@ public class SetCoralState extends Command {
                 break;
 
             case C_L1:
+                arm.setArmPivotState(state);
+                elevator.setElevatorState(state);
                 break;
 
             case C_L2:

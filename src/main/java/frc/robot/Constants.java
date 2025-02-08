@@ -65,8 +65,9 @@ public final class Constants
   }
 
   public static class Arm {
-    public static final double armGearRatio = 180;
-    public static final double ArmAngleConversionFactor = (1/armGearRatio)*360;
+    public static final double armGearRatio = 300;
+    public static final double kArmRotationsToDeg = (1/armGearRatio)*360;
+    public static final double kArmRPMtoDegPerSec = (360/(armGearRatio*60));
     public static final double C_STOW_ANGLE = 0;
     public static final double C_L1_ANGLE = 0;
     public static final double C_L2_ANGLE = 0;
@@ -77,7 +78,8 @@ public final class Constants
 
   public static class Wrist {
     public static final double wristGearRatio = 72;
-    public static final double WristAngleConversionFactor = (1/wristGearRatio)*360;
+    public static final double kWristRotationsToDeg = (1/wristGearRatio)*360;
+    public static final double kWristRPMtoDegPerSec = (360/wristGearRatio*60);
     public static final double C_STOW_ANGLE = 0;
     public static final double C_L1_ANGLE = 0;
     public static final double C_L2_ANGLE = 0;
@@ -90,19 +92,19 @@ public final class Constants
     //everything in inches
     public static final double gearRatio = 10.20408;
     public static final Distance wheelDiameter = Inches.of(1.756);
-    public static final double PositionConversionFactor = ((Math.PI*wheelDiameter.in(Inches))/gearRatio)*2;
+    public static final double kElevatorRotationsToInches = ((Math.PI*wheelDiameter.in(Inches))/gearRatio)*2;
     public static final Distance elevatorHeightOffGround = Inches.of(9);
     public static final double C_STOW_POS = 0;
-    public static final double C_L1_POS = Centimeters.of(46).in(Inches);
-    public static final double C_L2_POS = Centimeters.of(81).in(Inches);
-    public static final double C_L3_POS = Centimeters.of(121).in(Inches);
-    public static final double C_L4_POS = Centimeters.of(183).in(Inches);
+    public static final double C_L1_POS = Centimeters.of(46).in(Inches)-9;
+    public static final double C_L2_POS = Centimeters.of(81).in(Inches)-9;
+    public static final double C_L3_POS = Centimeters.of(121).in(Inches)-9;
+    public static final double C_L4_POS = Centimeters.of(183).in(Inches)-9;
     public static final double C_LOADING_POS = 0;
   }
 
   public static class Algae {
     public static final double gearRatio = 75;
-    public static final double AlgaePivotAngleConversionFactor = (1/gearRatio)*360;
+    public static final double kAlgaePivotRotationsToDeg = (1/gearRatio)*360;
     public static final double A_STOW_ANGLE = 0;
     public static final double A_PROCCESSOR_ANGLE = 0;
     public static final double A_LOADING_ANGLE = 0;
