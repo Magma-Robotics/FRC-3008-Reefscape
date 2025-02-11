@@ -17,6 +17,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.OperatorConstants;
@@ -157,7 +158,16 @@ public class RobotContainer
    */
   private void configureBindings()
   {
+    driverXbox
+      .x()
+      .onTrue(hang.hangDown())
+      .onFalse(hang.stopHang());
 
+    driverXbox
+      .y()
+      .onTrue(hang.hangUp())
+      .onFalse(hang.stopHang());
+    /* 
     driverXbox
       .a()
       .onTrue(algaeSubsystem.algaePivotDown())
@@ -176,7 +186,7 @@ public class RobotContainer
     driverXbox
       .y()
       .onTrue(algaeSubsystem.outtakeAlgae())
-      .onFalse(algaeSubsystem.stopAlgaeIntake());
+      .onFalse(algaeSubsystem.stopAlgaeIntake());*/
     /* 
     driverXbox
       .a()
@@ -187,7 +197,8 @@ public class RobotContainer
       .b()
       .onTrue(elevator.elevatorDown())
       .onFalse(elevator.stopElevator());
-
+*/
+/* 
     driverXbox
       .x()
       .onTrue(coralIntake.intakeCoral())
@@ -197,6 +208,41 @@ public class RobotContainer
       .y()
       .onTrue(coralIntake.outtakeCoral())
       .onFalse(coralIntake.stopIntake());
+
+    driverXbox
+      .povUp()
+      .onTrue(new SetCoralState(arm, elevator, CoralStates.C_L1));
+
+    driverXbox
+      .povLeft()
+      .onTrue(new SetCoralState(arm, elevator, CoralStates.C_L2));
+
+    driverXbox
+      .povDown()
+      .onTrue(new SetCoralState(arm, elevator, CoralStates.C_L3));
+
+    driverXbox
+      .povRight()
+      .onTrue(new SetCoralState(arm, elevator, CoralStates.C_L4));
+
+    driverXbox
+      .a()
+      .onTrue(new SetCoralState(arm, elevator, CoralStates.C_LOAD));
+
+    driverXbox
+      .b()
+      .onTrue(new SetCoralState(arm, elevator, CoralStates.C_GROUND));
+
+    driverXbox
+      .rightBumper()
+      .onTrue(new SetCoralState(arm, elevator, CoralStates.C_STOW));
+
+    driverXbox
+      .leftBumper()
+      .onTrue(
+        new ParallelCommandGroup(
+          arm.setArmPivotTarget(Constants.Arm.C_LOADING_ANGLE),
+          elevator.setElevatorTarget(Constants.Elevator.C_LOADING_POS)));
 */
     //drivebase.setDefaultCommand(driveFieldOrientedAnglularVelocity);
     //sys id tests on swerve drive

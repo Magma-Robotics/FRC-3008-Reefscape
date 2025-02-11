@@ -20,17 +20,17 @@ public class Hang extends SubsystemBase {
     public Hang() {
         hangConfig
             .inverted(false)
-            .idleMode(IdleMode.kCoast);
+            .idleMode(IdleMode.kBrake);
 
         hang.configure(hangConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
     }
 
     public Command hangUp() {
-        return runOnce(() -> hang.set(0.4));
+        return runOnce(() -> hang.set(0.5));
     }
 
     public Command hangDown() {
-        return runOnce(() -> hang.set(-0.4));
+        return runOnce(() -> hang.set(-0.5));
     }
 
     public Command stopHang() {

@@ -35,9 +35,9 @@ public class Elevator extends SubsystemBase {
     private SparkFlex leftElevator = new SparkFlex(Constants.CANIds.kLeftElevatorID, MotorType.kBrushless);
     private SparkClosedLoopController elevatorController = leftElevator.getClosedLoopController();
     private RelativeEncoder leftElevatorEncoder = leftElevator.getEncoder();
-    public static double kElevatorP = 0;
+    public static double kElevatorP = 0.01;
     public static double kElevatorI = 0;
-    public static double kElevatorD = 0;
+    public static double kElevatorD = 0.1;
     public static double elevatorSetpoint = 0;
 
     private SparkFlex rightElevator = new SparkFlex(Constants.CANIds.kRightElevatorID, MotorType.kBrushless);
@@ -53,24 +53,25 @@ public class Elevator extends SubsystemBase {
             .idleMode(IdleMode.kBrake);
         leftElevatorConfig
             .encoder
-            .positionConversionFactor(Constants.Elevator.kElevatorRotationsToInches);
+            .positionConversionFactor(Constants.Elevator.kElevatorRotationsToInches)
+            .velocityConversionFactor(Constants.Elevator.kElevatorRPMToInPerSec);
         leftElevatorConfig
             .closedLoop
             .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
             .pid(kElevatorP, kElevatorI, kElevatorD)
             .outputRange(-1, 1)
             .maxMotion
-            .maxAcceleration(1)
-            .maxVelocity(1)
-            .allowedClosedLoopError(3);
+            .maxAcceleration(10000)
+            .maxVelocity(20000)
+            .allowedClosedLoopError(0.5);
 
         rightElevatorConfig
-            .inverted(true)
             .idleMode(IdleMode.kBrake)
-            .follow(leftElevator);
+            .follow(leftElevator, false);
         rightElevatorConfig
             .encoder
-            .positionConversionFactor(Constants.Elevator.kElevatorRotationsToInches);
+            .positionConversionFactor(Constants.Elevator.kElevatorRotationsToInches)
+            .velocityConversionFactor(Constants.Elevator.kElevatorRPMToInPerSec);
 
         //sets configs
         leftElevator.configure(leftElevatorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
@@ -80,15 +81,15 @@ public class Elevator extends SubsystemBase {
     }
 
     public Command elevatorUp() {
-        return runOnce(() -> leftElevator.set(0.6));
+        return run(() -> leftElevator.set(0.6));
     }
 
     public Command elevatorDown() {
-        return runOnce(() -> leftElevator.set(-0.6));
+        return run(() -> leftElevator.set(-0.6));
     }
 
     public Command stopElevator() {
-        return runOnce(() -> leftElevator.set(0));
+        return run(() -> leftElevator.set(0));
     }
 
     public void reachElevatorTarget(double target) {
@@ -124,6 +125,10 @@ public class Elevator extends SubsystemBase {
             case C_LOAD:
                 reachElevatorTarget(Constants.Elevator.C_LOADING_POS);
                 break;
+
+            case C_GROUND:
+                reachElevatorTarget(Constants.Elevator.C_GROUND_POS);
+                break;
         }
     }
 
@@ -141,7 +146,7 @@ public class Elevator extends SubsystemBase {
 
     @Override
     public void periodic() {
-        SmartDashboard.putNumber("Elevator Pos", getLeftElevatorEncoderPos());
+        SmartDashboard.putNumber("Elevator Pos", leftElevatorEncoder.getPosition());
 
         //reachElevatorTarget(SmartDashboard.getNumber("ElevatorSetpoint", 0));
     }

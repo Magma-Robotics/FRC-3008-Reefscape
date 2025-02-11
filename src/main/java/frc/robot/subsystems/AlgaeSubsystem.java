@@ -39,7 +39,7 @@ public class AlgaeSubsystem extends SubsystemBase {
         //create configs
         algaePivotConfig
             .inverted(true)
-            .idleMode(IdleMode.kBrake)
+            .idleMode(IdleMode.kCoast)
             .smartCurrentLimit(40)
             .voltageCompensation(12);
         algaePivotConfig

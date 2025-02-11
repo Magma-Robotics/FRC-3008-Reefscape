@@ -28,11 +28,11 @@ public class CoralIntake extends SubsystemBase {
     }
     
     public Command intakeCoral() {
-        return runOnce(() -> intake.set(1));
+        return runOnce(() -> intake.set(0.5));
     }
 
     public Command outtakeCoral() {
-        return runOnce(() -> intake.set(-1));
+        return runOnce(() -> intake.set(-0.5));
     }
 
     public Command stopIntake() {
