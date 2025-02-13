@@ -81,11 +81,11 @@ public class Elevator extends SubsystemBase {
     }
 
     public Command elevatorUp() {
-        return run(() -> leftElevator.set(0.6));
+        return run(() -> leftElevator.set(0.2));
     }
 
     public Command elevatorDown() {
-        return run(() -> leftElevator.set(-0.6));
+        return run(() -> leftElevator.set(-0.2));
     }
 
     public Command stopElevator() {

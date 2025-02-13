@@ -110,6 +110,13 @@ public class Arm extends SubsystemBase {
         return run(() -> reachArmPivotTarget(target));
     }
 
+    public Command setManualArm(double leftJoystick, double rightJoystick) {
+        return run(() -> {
+            armPivot.set(leftJoystick);
+            wrist.set(rightJoystick);
+        });
+    }
+
     public void setArmPivotState(Constants.RobotStates.CoralStates state)  {
         switch(state) {
             case C_STOW:
