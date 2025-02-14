@@ -1,5 +1,7 @@
 package frc.robot.subsystems;
 
+import java.util.function.DoubleSupplier;
+
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.spark.ClosedLoopSlot;
 import com.revrobotics.spark.SparkClosedLoopController;
@@ -110,10 +112,10 @@ public class Arm extends SubsystemBase {
         return run(() -> reachArmPivotTarget(target));
     }
 
-    public Command setManualArm(double leftJoystick, double rightJoystick) {
+    public Command setManualArm(DoubleSupplier leftJoystick, DoubleSupplier rightJoystick) {
         return run(() -> {
-            armPivot.set(leftJoystick);
-            wrist.set(rightJoystick);
+            armPivot.set(leftJoystick.getAsDouble());
+            wrist.set(rightJoystick.getAsDouble());
         });
     }
 

@@ -109,7 +109,7 @@ public class RobotContainer
   // controls are front-left positive
   // left stick controls translation
   // right stick controls the angular velocity of the robot
-  Command driveFieldOrientedAnglularVelocity = drivebase.driveFieldOriented(driveAngularVelocity);
+  Command driveFieldOrientedAnglularVelocity = drivebase.driveFieldOriented(driveAngularVelocity);//, () -> driverXbox.rightBumper().getAsBoolean());
 
   Command driveSetpointGen = drivebase.driveWithSetpointGeneratorFieldRelative(driveDirectAngle);
 
@@ -149,6 +149,8 @@ public class RobotContainer
     NamedCommands.registerCommand("test", Commands.print("I EXIST"));
 
     SmartDashboard.putData(autoChooser);
+
+    drivebase.centerModulesCommand();
   }
 
   /**
@@ -160,6 +162,22 @@ public class RobotContainer
    */
   private void configureBindings()
   {
+    Trigger YAxisJoystickTrigger = new Trigger(() -> {
+      if (MathUtil.applyDeadband(driverPartnerXbox.getLeftY(), 0.1) > 0.1 || 
+          MathUtil.applyDeadband(driverPartnerXbox.getLeftY(), 0.1) < -0.1 ||
+          MathUtil.applyDeadband(driverPartnerXbox.getRightY(), 0.1) > 0.1 || 
+          MathUtil.applyDeadband(driverPartnerXbox.getRightY(), 0.1) < -0.1) {
+        return true;
+      } else {
+        return false;
+      }
+    });
+
+    YAxisJoystickTrigger
+      .onTrue(arm.setManualArm(() -> MathUtil.applyDeadband(-driverPartnerXbox.getLeftY(), 0.1), 
+                               () -> MathUtil.applyDeadband(-driverPartnerXbox.getRightY(), 0.1)))
+      .onFalse(arm.setManualArm(() -> 0, () -> 0));
+
     drivebase.setDefaultCommand(driveFieldOrientedAnglularVelocity);
 
     driverXbox
@@ -176,6 +194,10 @@ public class RobotContainer
       .y()
       .onTrue(hang.hangUp())
       .onFalse(hang.stopHang());
+
+    driverXbox
+      .leftBumper()
+      .onTrue(arm.setWristTarget(Constants.Wrist.C_LOADING_ANGLE));
     
     driverPartnerXbox
       .povUp()
@@ -189,7 +211,10 @@ public class RobotContainer
     
     driverPartnerXbox
       .povLeft()
-      .onTrue(new SetCoralState(arm, elevator, CoralStates.C_LOAD));
+      .onTrue(new ParallelCommandGroup(
+        arm.setArmPivotTarget(Constants.Arm.C_LOADING_ANGLE),
+        elevator.setElevatorTarget(Constants.Elevator.C_LOADING_POS)
+      ));
 
     driverPartnerXbox
       .povRight()
@@ -242,99 +267,6 @@ public class RobotContainer
       .onTrue(algaePivot.algaePivotDown())
       .onFalse(algaePivot.stopAlgaePivot());
 
-    //arm.setDefaultCommand(arm.setManualArm(MathUtil.applyDeadband(driverPartnerXbox.getLeftY(), 0.1), 
-     //                                      MathUtil.applyDeadband(driverPartnerXbox.getRightY(), 0.1)));
-      
-    /* 
-    driverXbox
-      .x()
-      .onTrue(hang.hangDown())
-      .onFalse(hang.stopHang());
-
-    driverXbox
-      .y()
-      .onTrue(hang.hangUp())
-      .onFalse(hang.stopHang());
-      */
-    /* 
-    driverXbox
-      .a()
-      .onTrue(algaeSubsystem.algaePivotDown())
-      .onFalse(algaeSubsystem.stopAlgaePivot());
-
-    driverXbox
-      .b()
-      .onTrue(algaeSubsystem.algaePivotUp())
-      .onFalse(algaeSubsystem.stopAlgaePivot());
-      
-    driverXbox
-      .x()
-      .onTrue(algaeSubsystem.intakeAlgae())
-      .onFalse(algaeSubsystem.stopAlgaeIntake());
-
-    driverXbox
-      .y()
-      .onTrue(algaeSubsystem.outtakeAlgae())
-      .onFalse(algaeSubsystem.stopAlgaeIntake());*/
-    /* 
-    driverXbox
-      .a()
-      .onTrue(elevator.elevatorUp())
-      .onFalse(elevator.stopElevator());
-
-    driverXbox
-      .b()
-      .onTrue(elevator.elevatorDown())
-      .onFalse(elevator.stopElevator());
-*/
-/* 
-    driverXbox
-      .x()
-      .onTrue(coralIntake.intakeCoral())
-      .onFalse(coralIntake.stopIntake());
-
-    driverXbox
-      .y()
-      .onTrue(coralIntake.outtakeCoral())
-      .onFalse(coralIntake.stopIntake());
-
-
-    driverXbox
-      .povUp()
-      .onTrue(new SetCoralState(arm, elevator, CoralStates.C_L1));
-
-    driverXbox
-      .povLeft()
-      .onTrue(new SetCoralState(arm, elevator, CoralStates.C_L2));
-
-    driverXbox
-      .povDown()
-      .onTrue(new SetCoralState(arm, elevator, CoralStates.C_L3));
-
-    driverXbox
-      .povRight()
-      .onTrue(new SetCoralState(arm, elevator, CoralStates.C_L4));
-
-    driverXbox
-      .a()
-      .onTrue(new SetCoralState(arm, elevator, CoralStates.C_LOAD));
-
-    driverXbox
-      .b()
-      .onTrue(new SetCoralState(arm, elevator, CoralStates.C_GROUND));
-
-    driverXbox
-      .rightBumper()
-      .onTrue(new SetCoralState(arm, elevator, CoralStates.C_STOW));
-
-    driverXbox
-      .leftBumper()
-      .onTrue(
-        new ParallelCommandGroup(
-          arm.setArmPivotTarget(Constants.Arm.C_LOADING_ANGLE),
-          elevator.setElevatorTarget(Constants.Elevator.C_LOADING_POS)));
-
-    drivebase.setDefaultCommand(driveFieldOrientedAnglularVelocity);*/
     //sys id tests on swerve drive
     /*driverXbox
       .a()
@@ -346,75 +278,6 @@ public class RobotContainer
       .whileTrue(drivebase.sysIdDriveMotorCommand());*/
 
      
-     
-    
-      /*
-    driverXbox
-      .b()
-      .onTrue(drivebase.driveToPose(
-        new Pose2d(
-          16.5-13.9, 8-4,
-          Rotation2d.fromDegrees(0)
-      )));
-
-    driverXbox
-      .rightBumper()
-      .onTrue(hang.hangUp())
-      .onFalse(hang.stopHang());
-
-    driverXbox
-      .rightTrigger(0.1)
-      .onTrue(hang.hangDown())
-      .onFalse(hang.stopHang());
-    
-    driverPartnerXbox
-      .povLeft()
-      .onTrue(new SetCoralState(arm, elevator, CoralStates.C_STOW));
-
-    driverPartnerXbox
-      .povRight()
-      .onTrue(new SetCoralState(arm, elevator, CoralStates.C_LOAD));
-
-    //outtake
-    driverPartnerXbox
-      .leftTrigger(0.1)
-      .onTrue(arm.outtakeCoral())
-      .onFalse(arm.stopIntake());
-
-    //intake
-    driverPartnerXbox
-      .rightTrigger(0.1)
-      .onTrue(arm.intakeCoral())
-      .onFalse(arm.stopIntake());
-
-    //elevator down
-    driverPartnerXbox
-      .povDown()
-      .onTrue(Commands.none());
-
-    //elevator up
-    driverPartnerXbox
-      .povUp()
-      .onTrue(Commands.none());
-*/
-/* 
-    driverPartnerXbox
-      .a()
-      .onTrue(new SetCoralState(arm, elevator, CoralStates.C_L1));
-      */
-/*
-    driverPartnerXbox
-      .b()
-      .onTrue(new SetCoralState(arm, elevator, CoralStates.C_L2));
-    
-    driverPartnerXbox
-      .y()
-      .onTrue(new SetCoralState(arm, elevator, CoralStates.C_L3));
-
-    driverPartnerXbox
-      .x()
-      .onTrue(new SetCoralState(arm, elevator, CoralStates.C_L3));
-      */
     /* 
     // (Condition) ? Return-On-True : Return-on-False
     drivebase.setDefaultCommand(!RobotBase.isSimulation() ?
