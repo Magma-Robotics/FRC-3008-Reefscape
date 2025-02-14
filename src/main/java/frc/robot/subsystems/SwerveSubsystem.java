@@ -39,13 +39,16 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Config;
 import frc.robot.Constants;
 import frc.robot.LimelightHelpers;
+import frc.robot.Constants.constField;
 
 //import frc.robot.subsystems.swervedrive.Vision.Cameras;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 import org.json.simple.parser.ParseException;
@@ -273,6 +276,28 @@ public class SwerveSubsystem extends SubsystemBase
   {
     // Create a path following command using AutoBuilder. This will also trigger event markers.
     return new PathPlannerAuto(pathName);
+  }
+
+  public Pose2d getDesiredReef(boolean leftBranchRequested) {
+    // Get the closest reef branch face using either branch on the face
+    List<Pose2d> reefPoses = constField.getReefPositions().get();
+    Pose2d currentPose = getPose();
+    Pose2d desiredReef = currentPose.nearest(reefPoses);
+    int closestReefIndex = reefPoses.indexOf(desiredReef);
+
+    // Invert faces on the back of the reef so they're always relative to the driver
+    if (closestReefIndex > 3 && closestReefIndex < 10) {
+      leftBranchRequested = !leftBranchRequested;
+    }
+
+    // If we were closer to the left branch but selected the right branch (or
+    // vice-versa), switch to our desired branch
+    if (leftBranchRequested && (closestReefIndex % 2 == 1)) {
+      desiredReef = reefPoses.get(closestReefIndex - 1);
+    } else if (!leftBranchRequested && (closestReefIndex % 2 == 0)) {
+      desiredReef = reefPoses.get(closestReefIndex + 1);
+    }
+    return desiredReef;
   }
 
   /**
@@ -507,6 +532,20 @@ public class SwerveSubsystem extends SubsystemBase
   {
     return run(() -> {
       swerveDrive.driveFieldOriented(velocity.get());
+    });
+  }
+
+  
+  public Command driveFieldOriented(Supplier<ChassisSpeeds> velocity, BooleanSupplier slowMode)
+  {
+    //slow mode
+    ChassisSpeeds slowerVelocity = new ChassisSpeeds(velocity.get().vxMetersPerSecond/2, velocity.get().vyMetersPerSecond/2, velocity.get().omegaRadiansPerSecond/2);
+    return run(() -> {
+      if (slowMode.getAsBoolean()) {
+        swerveDrive.driveFieldOriented(slowerVelocity);
+      } else {
+        swerveDrive.driveFieldOriented(velocity.get());
+      }
     });
   }
 

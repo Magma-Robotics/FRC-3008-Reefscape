@@ -5,11 +5,24 @@
 package frc.robot;
 
 import static edu.wpi.first.units.Units.Centimeters;
+import static edu.wpi.first.units.Units.Feet;
 import static edu.wpi.first.units.Units.Inches;
+import static edu.wpi.first.units.Units.Meter;
+import static edu.wpi.first.units.Units.Meters;
 
+import java.util.List;
+import java.util.Optional;
+import java.util.function.Supplier;
+
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Distance;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import swervelib.math.Matter;
 
 /**
@@ -129,6 +142,121 @@ public final class Constants
       A_STOW,
       A_PROCCESSOR,
       A_LOAD
+    }
+  }
+
+  public static class constField {
+    public static Optional<Alliance> ALLIANCE = Optional.empty();
+    public static final Distance FIELD_LENGTH = Feet.of(57).plus(Inches.of(6 + 7 / 8));
+    public static final Distance FIELD_WIDTH = Feet.of(26).plus(Inches.of(5));
+
+    /**
+     * Boolean that controls when the path will be mirrored for the red
+     * alliance. This will flip the path being followed to the red side of the
+     * field.
+     * The origin will remain on the Blue side.
+     * 
+     * @return If we are currently on Red alliance. Will return false if no alliance
+     *         is found
+     */
+    public static boolean isRedAlliance() {
+      var alliance = ALLIANCE;
+      if (alliance.isPresent()) {
+        return alliance.get() == DriverStation.Alliance.Red;
+      }
+      return false;
+    };
+
+    /*
+     * All poses on the field, defined by their location on the BLUE Alliance
+     */
+    public static class POSES {
+      public static final Pose2d RESET_POSE = new Pose2d(0, 0, new Rotation2d());
+      public static final Pose3d SCORING_ELEMENT_NOT_COLLECTED = new Pose3d(0, 0, -1, Rotation3d.kZero);
+
+      // BRANCH POSES
+      public static final Pose2d REEF_A = new Pose2d(2.860, 4.187, Rotation2d.fromDegrees(0));
+      public static final Pose2d REEF_B = new Pose2d(2.860, 3.857, Rotation2d.fromDegrees(0));
+      public static final Pose2d REEF_C = new Pose2d(3.527, 2.694, Rotation2d.fromDegrees(60));
+      public static final Pose2d REEF_D = new Pose2d(3.813, 2.535, Rotation2d.fromDegrees(60));
+      public static final Pose2d REEF_E = new Pose2d(5.160, 2.529, Rotation2d.fromDegrees(120));
+      public static final Pose2d REEF_F = new Pose2d(5.445, 2.694, Rotation2d.fromDegrees(120));
+      public static final Pose2d REEF_G = new Pose2d(6.119, 3.857, Rotation2d.fromDegrees(180));
+      public static final Pose2d REEF_H = new Pose2d(6.119, 4.187, Rotation2d.fromDegrees(180));
+      public static final Pose2d REEF_I = new Pose2d(5.452, 5.343, Rotation2d.fromDegrees(-120));
+      public static final Pose2d REEF_J = new Pose2d(5.166, 5.527, Rotation2d.fromDegrees(-120));
+      public static final Pose2d REEF_K = new Pose2d(3.826, 5.508, Rotation2d.fromDegrees(-60));
+      public static final Pose2d REEF_L = new Pose2d(3.534, 5.368, Rotation2d.fromDegrees(-60));
+
+      private static final List<Pose2d> BLUE_REEF_POSES = List.of(REEF_A, REEF_B, REEF_C, REEF_D, REEF_E,
+          REEF_F, REEF_G, REEF_H, REEF_I, REEF_J, REEF_K, REEF_L);
+      private static final List<Pose2d> RED_REEF_POSES = getRedReefPoses();
+
+      private static final Pose2d[] BLUE_POSES = new Pose2d[] { RESET_POSE, REEF_A, REEF_B, REEF_C, REEF_D, REEF_E,
+          REEF_F, REEF_G, REEF_H, REEF_I, REEF_J, REEF_K, REEF_L };
+
+      private static final Pose2d[] RED_POSES = getRedAlliancePoses();
+    }
+
+    public static Pose2d getRedAlliancePose(Pose2d bluePose) {
+      return new Pose2d(FIELD_LENGTH.in(Meters) - (bluePose.getX()),
+          FIELD_WIDTH.in(Meters) - bluePose.getY(),
+          bluePose.getRotation().plus(Rotation2d.fromDegrees(180)));
+    }
+
+    private static Pose2d[] getRedAlliancePoses() {
+      Pose2d[] returnedPoses = new Pose2d[POSES.BLUE_POSES.length];
+
+      for (int i = 0; i < POSES.BLUE_POSES.length; i++) {
+        returnedPoses[i] = getRedAlliancePose(POSES.BLUE_POSES[i]);
+      }
+      return returnedPoses;
+    }
+
+    private static List<Pose2d> getRedReefPoses() {
+      Pose2d[] returnedPoses = new Pose2d[POSES.BLUE_REEF_POSES.size()];
+
+      for (int i = 0; i < POSES.BLUE_REEF_POSES.size(); i++) {
+        returnedPoses[i] = getRedAlliancePose(POSES.BLUE_REEF_POSES.get(i));
+      }
+
+      return List.of(returnedPoses[0], returnedPoses[1], returnedPoses[2], returnedPoses[3], returnedPoses[4],
+          returnedPoses[5], returnedPoses[6], returnedPoses[7], returnedPoses[8], returnedPoses[9], returnedPoses[10],
+          returnedPoses[11]);
+    }
+
+    /**
+     * Gets the positions of all of the necessary field elements on the field. All
+     * coordinates are in meters and are relative to the blue alliance.
+     * 
+     * @see <a href=
+     *      https://docs.wpilib.org/en/stable/docs/software/basic-programming/coordinate-system.html#always-blue-origin">
+     *      Robot Coordinate Systems</a>
+     * @return An array of field element positions
+     */
+    public static Supplier<Pose2d[]> getFieldPositions() {
+      if (ALLIANCE.isPresent() && ALLIANCE.get().equals(Alliance.Red)) {
+        return () -> POSES.RED_POSES;
+
+      }
+      return () -> POSES.BLUE_POSES;
+    }
+
+    /**
+     * Gets the positions of all of the necessary field elements on the field. All
+     * coordinates are in meters and are relative to the blue alliance.
+     * 
+     * @see <a href=
+     *      https://docs.wpilib.org/en/stable/docs/software/basic-programming/coordinate-system.html#always-blue-origin">
+     *      Robot Coordinate Systems</a>
+     * @return An array of the reef branches for your alliance
+     */
+    public static Supplier<List<Pose2d>> getReefPositions() {
+      if (ALLIANCE.isPresent() && ALLIANCE.get().equals(Alliance.Red)) {
+        return () -> POSES.RED_REEF_POSES;
+
+      }
+      return () -> POSES.BLUE_REEF_POSES;
     }
   }
 }
