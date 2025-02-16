@@ -145,6 +145,11 @@ public final class Constants
     }
   }
 
+  public static class Drive {
+    public static final Distance MAX_AUTO_DRIVE_CORAL_STATION_DISTANCE = Meters.of(10);
+    public static final Distance MAX_AUTO_DRIVE_REEF_DISTANCE = Meters.of(1);
+  }
+
   public static class constField {
     public static Optional<Alliance> ALLIANCE = Optional.empty();
     public static final Distance FIELD_LENGTH = Feet.of(57).plus(Inches.of(6 + 7 / 8));
