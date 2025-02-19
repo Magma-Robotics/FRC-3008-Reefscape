@@ -110,6 +110,8 @@ public final class Constants
     public static final double kElevatorRotationsToInches = ((Math.PI*wheelDiameter.in(Inches))/gearRatio)*2;
     public static final double kElevatorRPMToInPerSec = kElevatorRotationsToInches/60;
     public static final Distance elevatorHeightOffGround = Inches.of(9);
+    public static final Distance kMinElevatorHeight = Inches.of(0);
+    public static final Distance kMaxElevatorHeight = Inches.of(68);
     public static final double C_STOW_POS = 0;
     public static final double C_L1_POS = 0;//Centimeters.of(46).in(Inches)-9;
     public static final double C_L2_POS = 15;//Centimeters.of(81).in(Inches)-9; //15
@@ -148,6 +150,7 @@ public final class Constants
   public static class Drive {
     public static final Distance MAX_AUTO_DRIVE_CORAL_STATION_DISTANCE = Meters.of(10);
     public static final Distance MAX_AUTO_DRIVE_REEF_DISTANCE = Meters.of(1);
+    public static final Distance MAX_AUTO_DRIVE_PROCESSOR_DISTANCE = Meters.of(5);
   }
 
   public static class constField {
@@ -193,6 +196,15 @@ public final class Constants
       public static final Pose2d REEF_K = new Pose2d(3.826, 5.508, Rotation2d.fromDegrees(-60));
       public static final Pose2d REEF_L = new Pose2d(3.534, 5.368, Rotation2d.fromDegrees(-60));
 
+      // CORAL STATION POSES
+      public static final Pose2d LEFT_CORAL_STATION_FAR = new Pose2d(1.64, 7.33, Rotation2d.fromDegrees(125));
+      public static final Pose2d LEFT_CORAL_STATION_NEAR = new Pose2d(0.71, 6.68, Rotation2d.fromDegrees(125));
+      public static final Pose2d RIGHT_CORAL_STATION_FAR = new Pose2d(1.61, 0.70, Rotation2d.fromDegrees(-125));
+      public static final Pose2d RIGHT_CORAL_STATION_NEAR = new Pose2d(0.64, 1.37, Rotation2d.fromDegrees(-125));
+
+      // processor poses
+      public static final Pose2d PROCESSOR = new Pose2d(6, .77, Rotation2d.fromDegrees(-90));
+
       private static final List<Pose2d> BLUE_REEF_POSES = List.of(REEF_A, REEF_B, REEF_C, REEF_D, REEF_E,
           REEF_F, REEF_G, REEF_H, REEF_I, REEF_J, REEF_K, REEF_L);
       private static final List<Pose2d> RED_REEF_POSES = getRedReefPoses();
@@ -201,6 +213,15 @@ public final class Constants
           REEF_F, REEF_G, REEF_H, REEF_I, REEF_J, REEF_K, REEF_L };
 
       private static final Pose2d[] RED_POSES = getRedAlliancePoses();
+
+      private static final List<Pose2d> BLUE_CORAL_STATION_POSES = List.of(LEFT_CORAL_STATION_FAR,
+          LEFT_CORAL_STATION_NEAR, RIGHT_CORAL_STATION_FAR, RIGHT_CORAL_STATION_NEAR);
+      private static final List<Pose2d> RED_CORAL_STATION_POSES = getRedCoralStationPoses();
+
+      private static final Pose2d BLUE_PROCESSOR_POSE = PROCESSOR;
+      private static final Pose2d RED_PROCESSOR_POSE = getRedProcessorPose();
+
+      private static final List<Pose2d> PROCESSOR_POSES = List.of(BLUE_PROCESSOR_POSE, RED_PROCESSOR_POSE);
     }
 
     public static Pose2d getRedAlliancePose(Pose2d bluePose) {
@@ -228,6 +249,24 @@ public final class Constants
       return List.of(returnedPoses[0], returnedPoses[1], returnedPoses[2], returnedPoses[3], returnedPoses[4],
           returnedPoses[5], returnedPoses[6], returnedPoses[7], returnedPoses[8], returnedPoses[9], returnedPoses[10],
           returnedPoses[11]);
+    }
+
+    private static List<Pose2d> getRedCoralStationPoses() {
+      Pose2d[] returnedPoses = new Pose2d[POSES.BLUE_CORAL_STATION_POSES.size()];
+
+      for (int i = 0; i < POSES.BLUE_CORAL_STATION_POSES.size(); i++) {
+        returnedPoses[i] = getRedAlliancePose(POSES.BLUE_CORAL_STATION_POSES.get(i));
+      }
+
+      return List.of(returnedPoses[0], returnedPoses[1], returnedPoses[2], returnedPoses[3]);
+    }
+
+    private static Pose2d getRedProcessorPose() {
+      Pose2d returnedPose = POSES.BLUE_PROCESSOR_POSE;
+
+      returnedPose = getRedAlliancePose(POSES.BLUE_PROCESSOR_POSE);
+
+      return returnedPose;
     }
 
     /**
@@ -262,6 +301,17 @@ public final class Constants
 
       }
       return () -> POSES.BLUE_REEF_POSES;
+    }
+
+    public static Supplier<List<Pose2d>> getCoralStationPositions() {
+      if (ALLIANCE.isPresent() && ALLIANCE.get().equals(Alliance.Red)) {
+        return () -> POSES.RED_CORAL_STATION_POSES;
+      }
+      return () -> POSES.BLUE_CORAL_STATION_POSES;
+    }
+
+    public static Supplier<List<Pose2d>> getProcessorPositions() {
+      return () -> POSES.PROCESSOR_POSES;
     }
   }
 }
