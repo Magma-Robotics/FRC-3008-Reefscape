@@ -181,6 +181,10 @@ public class RobotContainer
     drivebase.setDefaultCommand(driveFieldOrientedAnglularVelocity);
 
     driverXbox
+      .a()
+      .whileTrue(elevator.runSysIdRoutine());
+
+    driverXbox
       .start()
       .onTrue(Commands.runOnce(drivebase::zeroGyro));
 

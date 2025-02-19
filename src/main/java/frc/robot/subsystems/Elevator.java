@@ -7,6 +7,13 @@ import com.revrobotics.spark.config.ClosedLoopConfig.FeedbackSensor;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 
 import static edu.wpi.first.units.Units.Inches;
+import static edu.wpi.first.units.Units.Meter;
+import static edu.wpi.first.units.Units.Meters;
+import static edu.wpi.first.units.Units.MetersPerSecond;
+import static edu.wpi.first.units.Units.Rotations;
+import static edu.wpi.first.units.Units.Second;
+import static edu.wpi.first.units.Units.Seconds;
+import static edu.wpi.first.units.Units.Volts;
 
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.spark.ClosedLoopSlot;
@@ -22,13 +29,27 @@ import edu.wpi.first.math.controller.ElevatorFeedforward;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.networktables.NetworkTable;
+import edu.wpi.first.units.measure.Distance;
+import edu.wpi.first.units.measure.MutAngle;
+import edu.wpi.first.units.measure.MutDistance;
+import edu.wpi.first.units.measure.MutLinearVelocity;
+import edu.wpi.first.units.measure.MutVoltage;
+import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.robot.Constants;
 
 public class Elevator extends SubsystemBase {
+    public final Trigger atMin = new Trigger(() -> getLinearPosition().isNear(Constants.Elevator.kMinElevatorHeight, 
+    Inches.of(3)));
+    public final Trigger atMax = new Trigger(() -> getLinearPosition().isNear(Constants.Elevator.kMaxElevatorHeight,
+    Inches.of(3)));
+
     private SparkFlexConfig leftElevatorConfig = new SparkFlexConfig();
     private SparkFlexConfig rightElevatorConfig = new SparkFlexConfig();
 
@@ -46,6 +67,39 @@ public class Elevator extends SubsystemBase {
     private ElevatorFeedforward elevatorFeedforward = 
         new ElevatorFeedforward(0, 0, 0);
 
+    // SysId Routine and setup
+    // Mutable holder for unit-safe voltage values, persisted to avoid reallocation.
+    private final MutVoltage        m_appliedVoltage = Volts.mutable(0);
+    // Mutable holder for unit-safe linear distance values, persisted to avoid reallocation.
+    private final MutDistance       m_distance       = Meters.mutable(0);
+    private final MutAngle          m_rotations      = Rotations.mutable(0);
+    // Mutable holder for unit-safe linear velocity values, persisted to avoid reallocation.
+    private final MutLinearVelocity m_velocity       = MetersPerSecond.mutable(0);
+    // SysID Routine
+    private final SysIdRoutine      m_sysIdRoutine   =
+        new SysIdRoutine(
+            // Empty config defaults to 1 volt/second ramp rate and 7 volt step voltage.
+            new SysIdRoutine.Config(Volts.per(Second).of(1),
+                                    Volts.of(7),
+                                    Seconds.of(10)),
+            new SysIdRoutine.Mechanism(
+                // Tell SysId how to plumb the driving voltage to the motor(s).
+                leftElevator::setVoltage,
+                // Tell SysId how to record a frame of data for each motor on the mechanism being
+                // characterized.
+                log -> {
+                    // Record a frame for the elevator motor.
+                    log.motor("elevator")
+                    .voltage(
+                        m_appliedVoltage.mut_replace(
+                            leftElevator.getAppliedOutput() * RobotController.getBatteryVoltage(), Volts))
+                    .linearPosition(m_distance.mut_replace(getLeftElevatorEncoderPos(),
+                                                            Meters)) // Records Height in Inches via SysIdRoutineLog.linearPosition
+                    .linearVelocity(m_velocity.mut_replace(leftElevatorEncoder.getVelocity(),
+                                                            MetersPerSecond)); // Records velocity in InchesPerSecond via SysIdRoutineLog.linearVelocity
+                },
+                this));
+
     public Elevator() {
         //create configs
         leftElevatorConfig
@@ -61,8 +115,9 @@ public class Elevator extends SubsystemBase {
             .pid(kElevatorP, kElevatorI, kElevatorD)
             .outputRange(-1, 1)
             .maxMotion
+            /*
             .maxAcceleration(10000)
-            .maxVelocity(20000)
+            .maxVelocity(20000)*/
             .allowedClosedLoopError(0.5);
 
         rightElevatorConfig
@@ -132,6 +187,19 @@ public class Elevator extends SubsystemBase {
         }
     }
 
+    /**
+   * Runs the SysId routine to tune the Arm
+   *
+   * @return SysId Routine command
+   */
+  public Command runSysIdRoutine() {
+    return (m_sysIdRoutine.dynamic(Direction.kForward).until(atMax))
+        .andThen(m_sysIdRoutine.dynamic(Direction.kReverse).until(atMin))
+        .andThen(m_sysIdRoutine.quasistatic(Direction.kForward).until(atMax))
+        .andThen(m_sysIdRoutine.quasistatic(Direction.kReverse).until(atMin))
+        .andThen(Commands.print("DONE"));
+  }
+
     public double getLeftElevatorEncoderPos() {
         return leftElevatorEncoder.getPosition();
     }
@@ -142,6 +210,10 @@ public class Elevator extends SubsystemBase {
 
     public Trigger atHeight(double height, double tolerance) {
         return new Trigger(() -> MathUtil.isNear(height, getLeftElevatorEncoderPos(), tolerance));
+    }
+
+    public Distance getLinearPosition() {
+        return Inches.of(getLeftElevatorEncoderPos());
     }
 
     @Override
