@@ -101,8 +101,8 @@ public class SwerveSubsystem extends SubsystemBase
     try
     {
       swerveDrive = new SwerveParser(directory).createSwerveDrive(Constants.MAX_SPEED,
-                                                                  new Pose2d(new Translation2d(Meter.of(16.5-16.3),
-                                                                                               Meter.of(8-3.9)),
+                                                                  new Pose2d(new Translation2d(Meter.of(0),
+                                                                                               Meter.of(0)),
                                                                              Rotation2d.fromDegrees(0)));
       // Alternative method if you don't want to supply the conversion factor via JSON files.
       // swerveDrive = new SwerveParser(directory).createSwerveDrive(maximumSpeed, angleConversionFactor, driveConversionFactor);
@@ -314,6 +314,13 @@ public class SwerveSubsystem extends SubsystemBase
     return desiredProcessor;
   }
 
+  public void resetPoseWithAprilTag() {
+      try {
+      resetOdometry(visionSubsystem.GetVisionEstimate().pose);
+      }
+      catch(Exception e) {}
+  }
+
   /**
    * Use PathPlanner Path finding to go to a point on the field.
    *
@@ -324,7 +331,7 @@ public class SwerveSubsystem extends SubsystemBase
   {
 // Create the constraints to use while pathfinding
     PathConstraints constraints = new PathConstraints(
-        0.5/*swerveDrive.getMaximumChassisVelocity()*/, 0.5,
+        1/*swerveDrive.getMaximumChassisVelocity()*/, 1,
         swerveDrive.getMaximumChassisAngularVelocity(), Units.degreesToRadians(720));
 
 // Since AutoBuilder is configured, we can use it to build pathfinding commands

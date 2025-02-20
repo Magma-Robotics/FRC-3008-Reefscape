@@ -22,6 +22,7 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.Constants.RobotStates.CoralStates;
+import frc.robot.commands.DriveManual;
 import frc.robot.commands.SetCoralState;
 import frc.robot.commands.swervedrive.drivebase.AbsoluteDriveAdv;
 import frc.robot.subsystems.AlgaeIntake;
@@ -178,12 +179,18 @@ public class RobotContainer
                                () -> MathUtil.applyDeadband(-driverPartnerXbox.getRightY(), 0.1)))
       .onFalse(arm.setManualArm(() -> 0, () -> 0));
 
-    drivebase.setDefaultCommand(driveFieldOrientedAnglularVelocity);
-
+    drivebase.setDefaultCommand(
+      new DriveManual(
+        drivebase, () -> driverXbox.getLeftX(), () -> driverXbox.getLeftY(), 
+        () -> driverXbox.getRightX(), () -> driverXbox.rightTrigger(0.1).getAsBoolean(), 
+        () -> driverXbox.leftBumper().getAsBoolean(), () -> driverXbox.rightBumper().getAsBoolean(),
+        () -> driverXbox.a().getAsBoolean()));
+    
+/*
     driverXbox
       .a()
       .whileTrue(elevator.runSysIdRoutine());
-
+*/
     driverXbox
       .start()
       .onTrue(Commands.runOnce(drivebase::zeroGyro));

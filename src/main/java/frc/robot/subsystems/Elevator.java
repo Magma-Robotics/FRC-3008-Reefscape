@@ -6,7 +6,9 @@ import com.revrobotics.spark.config.SparkMaxConfig;
 import com.revrobotics.spark.config.ClosedLoopConfig.FeedbackSensor;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 
+import static edu.wpi.first.units.Units.Inch;
 import static edu.wpi.first.units.Units.Inches;
+import static edu.wpi.first.units.Units.InchesPerSecond;
 import static edu.wpi.first.units.Units.Meter;
 import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.MetersPerSecond;
@@ -65,7 +67,7 @@ public class Elevator extends SubsystemBase {
     private RelativeEncoder rightElevatorEncoder = rightElevator.getEncoder();
 
     private ElevatorFeedforward elevatorFeedforward = 
-        new ElevatorFeedforward(0, 0, 0);
+        new ElevatorFeedforward(0.56515, 3.1093, 0.51654);
 
     // SysId Routine and setup
     // Mutable holder for unit-safe voltage values, persisted to avoid reallocation.
@@ -79,8 +81,8 @@ public class Elevator extends SubsystemBase {
     private final SysIdRoutine      m_sysIdRoutine   =
         new SysIdRoutine(
             // Empty config defaults to 1 volt/second ramp rate and 7 volt step voltage.
-            new SysIdRoutine.Config(Volts.per(Second).of(1),
-                                    Volts.of(7),
+            new SysIdRoutine.Config(Volts.per(Second).of(0.7),
+                                    Volts.of(5),
                                     Seconds.of(10)),
             new SysIdRoutine.Mechanism(
                 // Tell SysId how to plumb the driving voltage to the motor(s).
@@ -94,9 +96,9 @@ public class Elevator extends SubsystemBase {
                         m_appliedVoltage.mut_replace(
                             leftElevator.getAppliedOutput() * RobotController.getBatteryVoltage(), Volts))
                     .linearPosition(m_distance.mut_replace(getLeftElevatorEncoderPos(),
-                                                            Meters)) // Records Height in Inches via SysIdRoutineLog.linearPosition
+                                                            Inches)) // Records Height in Inches via SysIdRoutineLog.linearPosition
                     .linearVelocity(m_velocity.mut_replace(leftElevatorEncoder.getVelocity(),
-                                                            MetersPerSecond)); // Records velocity in InchesPerSecond via SysIdRoutineLog.linearVelocity
+                                                            InchesPerSecond)); // Records velocity in InchesPerSecond via SysIdRoutineLog.linearVelocity
                 },
                 this));
 
@@ -115,9 +117,8 @@ public class Elevator extends SubsystemBase {
             .pid(kElevatorP, kElevatorI, kElevatorD)
             .outputRange(-1, 1)
             .maxMotion
-            /*
             .maxAcceleration(10000)
-            .maxVelocity(20000)*/
+            .maxVelocity(20000)
             .allowedClosedLoopError(0.5);
 
         rightElevatorConfig
@@ -148,7 +149,10 @@ public class Elevator extends SubsystemBase {
     }
 
     public void reachElevatorTarget(double target) {
-        elevatorController.setReference(target, ControlType.kMAXMotionPositionControl);
+        elevatorController.setReference(target, 
+                                        ControlType.kMAXMotionPositionControl/* , 
+                                        ClosedLoopSlot.kSlot0, 
+                                        elevatorFeedforward.calculate(leftElevatorEncoder.getVelocity())*/);
     }
 
     public Command setElevatorTarget(double target) {

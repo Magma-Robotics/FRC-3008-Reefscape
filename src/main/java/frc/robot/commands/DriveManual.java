@@ -7,6 +7,7 @@ import java.util.function.DoubleSupplier;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.units.measure.Distance;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants;
 import frc.robot.Constants.OperatorConstants;
@@ -17,12 +18,12 @@ public class DriveManual extends Command {
     SwerveSubsystem drive;
     DoubleSupplier xAxis, yAxis, rotationAxis;
     BooleanSupplier slowMode, leftReef, rightReef, leftCoralStationNear, rightCoralStationNear, leftCoralStationFar,
-    rightCoralStationFar;
+    rightCoralStationFar, resetPoseWithLimelight;
     double slowMultiplier = 0;
     SwerveInputStream driveAngularVelocity;
 
     public DriveManual(SwerveSubsystem drive, DoubleSupplier xAxis, DoubleSupplier yAxis, 
-            DoubleSupplier rotationAxis, BooleanSupplier slowMode, BooleanSupplier leftReef, BooleanSupplier rightReef) {
+            DoubleSupplier rotationAxis, BooleanSupplier slowMode, BooleanSupplier leftReef, BooleanSupplier rightReef, BooleanSupplier resetPoseWithLimelight) {
         this.drive = drive;
         this.xAxis = xAxis;
         this.yAxis = yAxis;
@@ -30,6 +31,7 @@ public class DriveManual extends Command {
         this.slowMode = slowMode;
         this.leftReef = leftReef;
         this.rightReef = rightReef;
+        this.resetPoseWithLimelight = resetPoseWithLimelight;
 
         addRequirements(this.drive);
     }
@@ -60,15 +62,23 @@ public class DriveManual extends Command {
             Pose2d desiredReef = drive.getDesiredReef(leftReef.getAsBoolean());
             Distance reefDistance = Meters.of(drive.getPose().getTranslation().getDistance(desiredReef.getTranslation()));
 
-            if (!reefDistance.gte(Constants.Drive.MAX_AUTO_DRIVE_REEF_DISTANCE)) {
+            /*if (!reefDistance.gte(Constants.Drive.MAX_AUTO_DRIVE_REEF_DISTANCE)) {
                 drive.driveToPose(desiredReef);
-            }
+            }*/
+            SmartDashboard.putNumber("Desired Reef X", desiredReef.getX());
+            SmartDashboard.putNumber("Desired Reef Distance", reefDistance.baseUnitMagnitude());
+            drive.driveToPose(desiredReef).execute();
+        }
+
+        else if (resetPoseWithLimelight.getAsBoolean()) {
+            drive.resetPoseWithAprilTag();
         }
 
         else {
-            drive.driveFieldOriented(driveAngularVelocity);
+            drive.driveFieldOriented(driveAngularVelocity).execute();
         }
 
+        SmartDashboard.putBoolean("leftReef", leftReef.getAsBoolean());
     }
     
     @Override
