@@ -30,6 +30,7 @@ import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.ElevatorFeedforward;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
+import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.MutAngle;
@@ -67,7 +68,13 @@ public class Elevator extends SubsystemBase {
     private RelativeEncoder rightElevatorEncoder = rightElevator.getEncoder();
 
     private ElevatorFeedforward elevatorFeedforward = 
-        new ElevatorFeedforward(0.56515, 3.1093, 0.51654);
+        new ElevatorFeedforward(0.39968, 0.43219, 3.2903, 0.44208);
+
+    /*private final ProfiledPIDController m_controller = new ProfiledPIDController(
+        kElevatorP,
+        kElevatorI,
+        kElevatorD,
+        new Constraints(1, 1));*/
 
     // SysId Routine and setup
     // Mutable holder for unit-safe voltage values, persisted to avoid reallocation.
@@ -130,8 +137,8 @@ public class Elevator extends SubsystemBase {
             .velocityConversionFactor(Constants.Elevator.kElevatorRPMToInPerSec);
 
         //sets configs
-        leftElevator.configure(leftElevatorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-        rightElevator.configure(rightElevatorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+        leftElevator.configure(leftElevatorConfig, ResetMode.kNoResetSafeParameters, PersistMode.kPersistParameters);
+        rightElevator.configure(rightElevatorConfig, ResetMode.kNoResetSafeParameters, PersistMode.kPersistParameters);
 
         SmartDashboard.putNumber("ElevatorSetpoint", elevatorSetpoint);
     }
@@ -150,9 +157,7 @@ public class Elevator extends SubsystemBase {
 
     public void reachElevatorTarget(double target) {
         elevatorController.setReference(target, 
-                                        ControlType.kMAXMotionPositionControl/* , 
-                                        ClosedLoopSlot.kSlot0, 
-                                        elevatorFeedforward.calculate(leftElevatorEncoder.getVelocity())*/);
+                                        ControlType.kMAXMotionPositionControl);
     }
 
     public Command setElevatorTarget(double target) {
