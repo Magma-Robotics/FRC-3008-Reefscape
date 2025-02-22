@@ -21,6 +21,7 @@ public class DriveManual extends Command {
     rightCoralStationFar, resetPoseWithLimelight;
     double slowMultiplier = 0;
     SwerveInputStream driveAngularVelocity;
+    boolean reefDebounce = false;
 
     public DriveManual(SwerveSubsystem drive, DoubleSupplier xAxis, DoubleSupplier yAxis, 
             DoubleSupplier rotationAxis, BooleanSupplier slowMode, BooleanSupplier leftReef, BooleanSupplier rightReef, BooleanSupplier resetPoseWithLimelight) {
@@ -58,19 +59,19 @@ public class DriveManual extends Command {
                                                             .scaleTranslation(1)
                                                             .allianceRelativeControl(true);
 
-        if (leftReef.getAsBoolean() || rightReef.getAsBoolean()) {
+        /*if (leftReef.getAsBoolean() || rightReef.getAsBoolean()) {
             Pose2d desiredReef = drive.getDesiredReef(leftReef.getAsBoolean());
             Distance reefDistance = Meters.of(drive.getPose().getTranslation().getDistance(desiredReef.getTranslation()));
 
-            /*if (!reefDistance.gte(Constants.Drive.MAX_AUTO_DRIVE_REEF_DISTANCE)) {
+            if (!reefDistance.gte(Constants.Drive.MAX_AUTO_DRIVE_REEF_DISTANCE)) {
                 drive.driveToPose(desiredReef);
-            }*/
+            }
             SmartDashboard.putNumber("Desired Reef X", desiredReef.getX());
             SmartDashboard.putNumber("Desired Reef Distance", reefDistance.baseUnitMagnitude());
             drive.driveToPose(desiredReef).execute();
-        }
+        }*/
 
-        else if (resetPoseWithLimelight.getAsBoolean()) {
+        if (resetPoseWithLimelight.getAsBoolean()) {
             drive.resetPoseWithAprilTag();
         }
 

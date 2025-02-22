@@ -21,6 +21,7 @@ import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.OperatorConstants;
+import frc.robot.Constants.constField;
 import frc.robot.Constants.RobotStates.CoralStates;
 import frc.robot.commands.DriveManual;
 import frc.robot.commands.SetCoralState;
@@ -186,7 +187,7 @@ public class RobotContainer
         () -> driverXbox.leftBumper().getAsBoolean(), () -> driverXbox.rightBumper().getAsBoolean(),
         () -> driverXbox.a().getAsBoolean()));
     
-/*
+/* 
     driverXbox
       .a()
       .whileTrue(elevator.runSysIdRoutine());
@@ -207,8 +208,20 @@ public class RobotContainer
       .onFalse(hang.stopHang());
 
     driverXbox
-      .leftBumper()
+      .b()
       .onTrue(arm.setWristTarget(Constants.Wrist.C_LOADING_ANGLE));
+
+    driverXbox
+      .rightBumper()
+      .onTrue(drivebase.driveToReef(false));
+
+    driverXbox
+      .leftBumper()
+      .onTrue(drivebase.driveToReef(true));
+
+    driverXbox
+      .povUp()
+      .onTrue(drivebase.driveToPose(constField.getReefPositions().get().get(1)));
     
     driverPartnerXbox
       .povUp()

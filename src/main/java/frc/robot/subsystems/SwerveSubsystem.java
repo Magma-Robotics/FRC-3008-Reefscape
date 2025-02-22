@@ -5,6 +5,7 @@
 package frc.robot.subsystems;
 
 import static edu.wpi.first.units.Units.Meter;
+import static edu.wpi.first.units.Units.Meters;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.commands.PathPlannerAuto;
@@ -29,6 +30,7 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
@@ -315,10 +317,27 @@ public class SwerveSubsystem extends SubsystemBase
   }
 
   public void resetPoseWithAprilTag() {
+    Pose2d currentPose = getPose();
       try {
-      resetOdometry(visionSubsystem.GetVisionEstimate().pose);
+        Pose2d visionEstimatePose = visionSubsystem.GetVisionEstimate().pose;
+        resetOdometry(new Pose2d(visionEstimatePose.getX(), visionEstimatePose.getY(), getPose().getRotation()));
       }
-      catch(Exception e) {}
+      catch(Exception e) {
+        resetOdometry(currentPose);
+      }
+  }
+
+  public Command driveToReef(boolean leftBranchRequested) {
+    Pose2d desiredReef = getDesiredReef(leftBranchRequested);
+    Distance reefDistance = Meters.of(getPose().getTranslation().getDistance(desiredReef.getTranslation()));
+
+    /*if (!reefDistance.gte(Constants.Drive.MAX_AUTO_DRIVE_REEF_DISTANCE)) {
+      return driveToPose(desiredReef);
+    }
+    else {
+      return Commands.none();
+    }*/
+    return driveToPose(desiredReef);
   }
 
   /**
