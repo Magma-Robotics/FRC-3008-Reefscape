@@ -165,10 +165,10 @@ public class RobotContainer
   private void configureBindings()
   {
     Trigger YAxisJoystickTrigger = new Trigger(() -> {
-      if (MathUtil.applyDeadband(driverPartnerXbox.getLeftY(), 0.1) > 0.1 || 
-          MathUtil.applyDeadband(driverPartnerXbox.getLeftY(), 0.1) < -0.1 ||
-          MathUtil.applyDeadband(driverPartnerXbox.getRightY(), 0.1) > 0.1 || 
-          MathUtil.applyDeadband(driverPartnerXbox.getRightY(), 0.1) < -0.1) {
+      if (MathUtil.applyDeadband(driverPartnerXbox.getLeftY(), 0.01) > 0.01|| 
+          MathUtil.applyDeadband(driverPartnerXbox.getLeftY(), 0.01) < -0.01 ||
+          MathUtil.applyDeadband(driverPartnerXbox.getRightY(), 0.01) > 0.01 || 
+          MathUtil.applyDeadband(driverPartnerXbox.getRightY(), 0.01) < -0.01) {
         return true;
       } else {
         return false;
@@ -176,14 +176,13 @@ public class RobotContainer
     });
 
     YAxisJoystickTrigger
-      .onTrue(arm.setManualArm(() -> MathUtil.applyDeadband(-driverPartnerXbox.getLeftY(), 0.1), 
-                               () -> MathUtil.applyDeadband(-driverPartnerXbox.getRightY(), 0.1)))
-      .onFalse(arm.setManualArm(() -> 0, () -> 0));
+      .onTrue(arm.setManualArm(() -> MathUtil.applyDeadband(-driverPartnerXbox.getLeftY(), 0.01), 
+                               () -> MathUtil.applyDeadband(-driverPartnerXbox.getRightY(), 0.01)));
 
     drivebase.setDefaultCommand(
       new DriveManual(
         drivebase, () -> driverXbox.getLeftX(), () -> driverXbox.getLeftY(), 
-        () -> driverXbox.getRightX(), () -> driverXbox.rightTrigger(0.1).getAsBoolean(), 
+        () -> driverXbox.getRightX(), () -> driverXbox.rightTrigger(0.01).getAsBoolean(), 
         () -> driverXbox.leftBumper().getAsBoolean(), () -> driverXbox.rightBumper().getAsBoolean(),
         () -> driverXbox.a().getAsBoolean()));
     
@@ -207,11 +206,11 @@ public class RobotContainer
       .onTrue(hang.hangUp())
       .onFalse(hang.stopHang());
 
-    driverXbox
-      .b()
-      .onTrue(arm.setWristTarget(Constants.Wrist.C_LOADING_ANGLE));
+    //driverXbox
+    //  .b()
+    //  .onTrue(arm.setWristTarget(Constants.Wrist.C_LOADING_ANGLE));
 
-    driverXbox
+    /*driverXbox
       .rightBumper()
       .onTrue(drivebase.driveToReef(false));
 
@@ -221,7 +220,7 @@ public class RobotContainer
 
     driverXbox
       .povUp()
-      .onTrue(drivebase.driveToPose(constField.getReefPositions().get().get(1)));
+      .onTrue(drivebase.driveToPose(constField.getReefPositions().get().get(1)));*/
     
     driverPartnerXbox
       .povUp()
@@ -233,12 +232,16 @@ public class RobotContainer
       .onTrue(elevator.elevatorDown())
       .onFalse(elevator.stopElevator());
     
-    driverPartnerXbox
+    /*driverPartnerXbox
       .povLeft()
       .onTrue(new ParallelCommandGroup(
         arm.setArmPivotTarget(Constants.Arm.C_LOADING_ANGLE),
         elevator.setElevatorTarget(Constants.Elevator.C_LOADING_POS)
-      ));
+      ));*/
+
+    driverPartnerXbox
+      .povLeft()
+      .onTrue(new SetCoralState(arm, elevator, CoralStates.C_LOAD));
 
     driverPartnerXbox
       .povRight()
@@ -271,12 +274,12 @@ public class RobotContainer
       .onFalse(coralIntake.stopIntake());
 
     driverPartnerXbox
-      .rightTrigger(0.1)
+      .rightTrigger(0.01)
       .onTrue(algaeIntake.intakeAlgae())
       .onFalse(algaeIntake.stopAlgaeIntake());
 
     driverPartnerXbox
-      .leftTrigger(0.1)
+      .leftTrigger(0.01)
       .onTrue(algaeIntake.outtakeAlgae())
       .onFalse(algaeIntake.stopAlgaeIntake());
 

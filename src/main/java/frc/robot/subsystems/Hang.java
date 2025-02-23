@@ -21,6 +21,7 @@ public class Hang extends SubsystemBase {
     private SparkMaxConfig hangConfig = new SparkMaxConfig();
     private SparkMax hang = new SparkMax(Constants.CANIds.kHangID, MotorType.kBrushless);
     private SparkClosedLoopController hangController = hang.getClosedLoopController();
+    private double hangPivotSetpoint = 0;
     
     public Hang() {
         hangConfig
@@ -29,7 +30,7 @@ public class Hang extends SubsystemBase {
         hangConfig
             .closedLoop
             .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
-            .pid(0, 0, 0)
+            .pid(0.1, 0, 0)
             .outputRange(-1, 1)
             .maxMotion
             .maxVelocity(5)
@@ -38,26 +39,43 @@ public class Hang extends SubsystemBase {
             .positionMode(MAXMotionPositionMode.kMAXMotionTrapezoidal);
         
 
-        hang.configure(hangConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+        hang.configure(hangConfig, ResetMode.kNoResetSafeParameters, PersistMode.kPersistParameters);
     }
 
     public Command hangUp() {
         return runOnce(() -> hang.set(1));
+        /*return run(() -> {
+            if (hangPivotSetpoint > Constants.Hang.maxHangAngle) {
+                hangPivotSetpoint -= 0.1;
+            }
+            reachHangPivotTarget(hangPivotSetpoint);
+       });*/
     }
 
     public Command hangDown() {
         return runOnce(() -> hang.set(-1));
+        /*return run(() -> {
+            if (hangPivotSetpoint > Constants.Hang.minHangAngle) {
+                hangPivotSetpoint += 0.1;
+            }
+            reachHangPivotTarget(hangPivotSetpoint);
+           });*/
     }
 
     public Command stopHang() {
         return runOnce(() -> hang.set(0));
+        /*return run(() -> {
+            reachHangPivotTarget(hangPivotSetpoint);
+           });*/
     }
 
     public void reachHangPivotTarget(double target) {
+        hangPivotSetpoint = target;
         hangController.setReference(target, ControlType.kMAXMotionPositionControl);
     }
 
     public Command setHangPivotTarget(double target) {
+        hangPivotSetpoint = target;
        return run(() -> reachHangPivotTarget(target));
     }
 

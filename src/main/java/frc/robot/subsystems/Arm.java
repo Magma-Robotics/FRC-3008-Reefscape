@@ -85,8 +85,8 @@ public class Arm extends SubsystemBase {
             .pid(kWristP, kWristI, kWristD)
             .outputRange(-1, 1)
             .maxMotion
-            .maxVelocity(15000)
-            .maxAcceleration(3000)
+            .maxVelocity(11000)
+            .maxAcceleration(4000)
             .allowedClosedLoopError(1)
             .positionMode(MAXMotionPositionMode.kMAXMotionTrapezoidal);
         wristConfig
@@ -105,17 +105,21 @@ public class Arm extends SubsystemBase {
     }
 
     public void reachArmPivotTarget(double target) {
+        armAngleSetPoint = target;
         armPivotController.setReference(target, ControlType.kMAXMotionPositionControl);
     }
 
     public Command setArmPivotTarget(double target) {
+        armAngleSetPoint = target;
         return run(() -> reachArmPivotTarget(target));
     }
 
     public Command setManualArm(DoubleSupplier leftJoystick, DoubleSupplier rightJoystick) {
         return run(() -> {
-            armPivot.set(leftJoystick.getAsDouble());
-            wrist.set(rightJoystick.getAsDouble());
+            armAngleSetPoint += leftJoystick.getAsDouble();
+            wristAngleSetPoint += rightJoystick.getAsDouble();
+            reachArmPivotTarget(armAngleSetPoint);
+            reachWristTarget(wristAngleSetPoint);
         });
     }
 
@@ -184,12 +188,15 @@ public class Arm extends SubsystemBase {
     }
 
     public void reachWristTarget(double target) {
+        wristAngleSetPoint = target;
         wristController.setReference(target, ControlType.kMAXMotionPositionControl);
     }
 
+    /*
     public Command setWristTarget(double target) {
+        wristAngleSetPoint = target;
         return run(() -> reachWristTarget(target));
-    }
+    }*/
 
     public void resetArmPivotEncoder() {
         armPivotEncoder.setPosition(0);

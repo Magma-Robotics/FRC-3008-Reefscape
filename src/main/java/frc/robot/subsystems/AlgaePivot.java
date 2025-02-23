@@ -64,21 +64,22 @@ public class AlgaePivot extends SubsystemBase {
 
     public Command algaePivotDown() {
         return run(() -> {
-            //algaePivot.set(0.6)
-            algaePivotTarget -= 0.1;
-            setAlgaePivotAngle(algaePivotTarget);
+            algaePivot.set(0.6);
+            /*algaePivotTarget -= 0.1;
+            setAlgaePivotAngle(algaePivotTarget);*/
         });
     }
 
     public Command algaePivotUp() {
         return run(() -> {
-            algaePivotTarget += 0.1;
-            setAlgaePivotAngle(algaePivotTarget);
+            algaePivot.set(0.6);
+            /*algaePivotTarget += 0.1;
+            setAlgaePivotAngle(algaePivotTarget);*/
         });
     }
 
     public Command stopAlgaePivot() {
-        return run(() -> setAlgaePivotAngle(algaePivotTarget));
+        return run(() -> algaePivot.set(0)/*() -> setAlgaePivotAngle(algaePivotTarget)*/);
     }
 
     public void setAlgaePivotState(Constants.RobotStates.AlgaeStates state)  {

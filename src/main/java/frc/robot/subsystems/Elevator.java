@@ -62,6 +62,7 @@ public class Elevator extends SubsystemBase {
     public static double kElevatorP = 0.01;
     public static double kElevatorI = 0;
     public static double kElevatorD = 0.1;
+
     public static double elevatorSetpoint = 0;
 
     private SparkFlex rightElevator = new SparkFlex(Constants.CANIds.kRightElevatorID, MotorType.kBrushless);
@@ -144,23 +145,33 @@ public class Elevator extends SubsystemBase {
     }
 
     public Command elevatorUp() {
-        return run(() -> leftElevator.set(0.2));
+        return run(() -> {
+            elevatorSetpoint += 0.13;
+            reachElevatorTarget(elevatorSetpoint);
+        });
     }
 
     public Command elevatorDown() {
-        return run(() -> leftElevator.set(-0.2));
+        return run(() -> {
+            elevatorSetpoint -= 0.13;
+            reachElevatorTarget(elevatorSetpoint);
+        });
     }
 
     public Command stopElevator() {
-        return run(() -> leftElevator.set(0));
+        return run(() -> {
+            reachElevatorTarget(elevatorSetpoint);
+        });
     }
 
     public void reachElevatorTarget(double target) {
+        elevatorSetpoint = target;
         elevatorController.setReference(target, 
                                         ControlType.kMAXMotionPositionControl);
     }
 
     public Command setElevatorTarget(double target) {
+        elevatorSetpoint = target;
         return run(() -> reachElevatorTarget(target));
     }
 
