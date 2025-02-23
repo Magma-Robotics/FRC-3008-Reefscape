@@ -28,6 +28,9 @@ public class AlgaePivot extends SubsystemBase {
     public static double kAlgaePivotD = 0;
     public static double algaePivotSetpoint = 0;
 
+    //Target
+    public double algaePivotTarget = 0;
+
     public AlgaePivot() {
         //create configs
         algaePivotConfig
@@ -60,31 +63,42 @@ public class AlgaePivot extends SubsystemBase {
     }
 
     public Command algaePivotDown() {
-        return run(() -> algaePivot.set(0.6));
+        return run(() -> {
+            //algaePivot.set(0.6)
+            algaePivotTarget -= 0.1;
+            setAlgaePivotAngle(algaePivotTarget);
+        });
     }
 
     public Command algaePivotUp() {
-        return run(() -> algaePivot.set(-0.6));
+        return run(() -> {
+            algaePivotTarget += 0.1;
+            setAlgaePivotAngle(algaePivotTarget);
+        });
     }
 
     public Command stopAlgaePivot() {
-        return run(() -> algaePivot.set(0));
+        return run(() -> setAlgaePivotAngle(algaePivotTarget));
     }
 
     public void setAlgaePivotState(Constants.RobotStates.AlgaeStates state)  {
         switch(state) {
             case A_STOW:
-                reachAlgaePivotAngle(Constants.Algae.A_STOW_ANGLE);
+                //reachAlgaePivotAngle(Constants.Algae.A_STOW_ANGLE);
+                algaePivotTarget = Constants.Algae.A_STOW_ANGLE;
                 break;
             
             case A_PROCCESSOR:
-                reachAlgaePivotAngle(Constants.Algae.A_PROCCESSOR_ANGLE);
+                //reachAlgaePivotAngle(Constants.Algae.A_PROCCESSOR_ANGLE);
+                algaePivotTarget = Constants.Algae.A_PROCCESSOR_ANGLE;
                 break;
 
             case A_LOAD:
-                reachAlgaePivotAngle(Constants.Algae.A_LOADING_ANGLE);
+                //reachAlgaePivotAngle(Constants.Algae.A_LOADING_ANGLE);
+                algaePivotTarget = Constants.Algae.A_LOADING_ANGLE;
                 break;
         }
+        setAlgaePivotAngle(algaePivotTarget);
     }
 
     public double getAlgaePivotPos() {
