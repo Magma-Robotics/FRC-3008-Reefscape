@@ -83,7 +83,7 @@ public class SwerveSubsystem extends SubsystemBase
    * Enable vision odometry updates while driving.
    */
   private final boolean             visionDriveTest     = false;
-  private boolean b_IsPositionCameraInitalized;
+  private boolean b_IsPositionCameraInitalized = false;
 
   private final VisionSubsystem visionSubsystem = new VisionSubsystem("limelight");
   /**
