@@ -4,6 +4,7 @@
 
 package frc.robot.subsystems;
 
+import static edu.wpi.first.units.Units.DegreesPerSecond;
 import static edu.wpi.first.units.Units.Meter;
 import static edu.wpi.first.units.Units.Meters;
 
@@ -30,6 +31,7 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
@@ -165,7 +167,7 @@ public class SwerveSubsystem extends SubsystemBase
         b_IsPositionCameraInitalized = true;
       }
     }
-    //addVisionReading();
+    if (!visionSubsystem.rejectUpdate(visionSubsystem.GetVisionEstimate(), null))
     SmartDashboard.putNumber("X Pos", getPose().getX());
     SmartDashboard.putNumber("Y Pos", getPose().getY());
     SmartDashboard.putNumber("Rotation", getPose().getRotation().getDegrees());
@@ -827,8 +829,11 @@ public class SwerveSubsystem extends SubsystemBase
     return swerveDrive;
   }
 
-  public void addVisionReading() {
-    LimelightHelpers.PoseEstimate VisionEstimate = visionSubsystem.GetVisionEstimate();
-    swerveDrive.addVisionMeasurement(VisionEstimate.pose, VisionEstimate.timestampSeconds, VecBuilder.fill(.7,.7,9999999));
+  public void addVisionMeasurement(Pose2d pose, double timestamp) {
+    swerveDrive.addVisionMeasurement(pose, timestamp, VecBuilder.fill(.7,.7,9999999));
+  }
+
+  public double getGyroRate() {
+    return swerveDrive.getGyro().getYawAngularVelocity().baseUnitMagnitude();
   }
 }

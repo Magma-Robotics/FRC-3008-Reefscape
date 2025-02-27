@@ -4,14 +4,17 @@ package frc.robot.subsystems;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.math.geometry.Pose2d;
-
+import edu.wpi.first.units.Units;
+import edu.wpi.first.units.measure.AngularVelocity;
 //Limelight library imports
 import frc.robot.LimelightHelpers;
 import frc.robot.LimelightHelpers.LimelightResults;
+import frc.robot.LimelightHelpers.PoseEstimate;
 
 //NavX library imports
 import com.studica.frc.AHRS;
 
+import java.util.Optional;
 //Base java imports
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -33,6 +36,12 @@ public class VisionSubsystem extends SubsystemBase{
     private ReentrantLock lock = new ReentrantLock();
 
     private final String LL_NAME;
+
+    PoseEstimate lastEstimate = new PoseEstimate();
+    boolean newEstimate = false;
+    Pose2d pose = new Pose2d();
+
+    private boolean useMegaTag2 = false;
     //Gyro
     private AHRS navX = new AHRS(AHRS.NavXComType.kMXP_SPI, AHRS.NavXUpdateRate.k50Hz);
 
@@ -42,11 +51,92 @@ public class VisionSubsystem extends SubsystemBase{
         LimelightHelpers.setPipelineIndex(LL_NAME, 0);
         navX.zeroYaw();
     }
+
+    public PoseEstimate getLastPoseEstimate() {
+        return lastEstimate;
+      }
+    
+      public void setMegaTag2(boolean useMegaTag2) {
+        this.useMegaTag2 = useMegaTag2;
+      }
+
+    public boolean rejectUpdate(PoseEstimate poseEstimate, AngularVelocity gyroRate) {
+    // Angular velocity is too high to have accurate vision
+    if (gyroRate.compareTo(Units.DegreesPerSecond.of(720)) > 0) {
+      return true;
+    }
+
+    // No tags :<
+    if (poseEstimate.tagCount == 0) {
+      return true;
+    }
+
+    // 1 Tag with a large area
+    if (poseEstimate.tagCount == 1 && poseEstimate.avgTagArea > 0.1) {
+      return false;
+      // 2 tags or more
+    } else if (poseEstimate.tagCount > 1) {
+      return false;
+    }
+
+    return true;
+  }
+
+   /**
+   * Updates the current pose estimates for the robot using
+   * data from Limelight cameras.
+   *
+   * @param gyroRate The current angular velocity of the robot, used to validate
+   *                 the pose estimates.
+   *
+   *                 This method retrieves pose estimates from the Limelight
+   *                 camera and updates the
+   *                 pose estimate if it is valid. The method
+   *                 supports two modes of operation:
+   *                 one using MegaTag2 and one without. The appropriate pose
+   *                 estimate retrieval method is chosen
+   *                 based on the value of the `useMegaTag2` flag.
+   *
+   *                 If the retrieved pose estimates are valid and not rejected
+   *                 based on the current angular velocity,
+   *                 the method updates the last known estimates and sets flags
+   *                 indicating new estimates are available.
+   */
+  public void setCurrentEstimates(AngularVelocity gyroRate) {
+    PoseEstimate currentEstimate = new PoseEstimate();
+
+    if (useMegaTag2) {
+        currentEstimate = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(LL_NAME);
+    }
+    else {
+        currentEstimate = LimelightHelpers.getBotPoseEstimate_wpiBlue(LL_NAME);
+    }
+
+    if (currentEstimate != null && !rejectUpdate(currentEstimate, gyroRate)) {
+      lastEstimate = currentEstimate;
+      pose = currentEstimate.pose;
+      newEstimate = true;
+    }
+  }
+
+  public Optional<PoseEstimate> determinePoseEstimate(AngularVelocity gyroRate) {
+    setCurrentEstimates(gyroRate);
+
+    // No valid pose estimates :(
+    if (!newEstimate) {
+      return Optional.empty();
+    } 
+    else {
+      // valid pose estimate
+      newEstimate = false;
+      return Optional.of(lastEstimate);
+    } 
+  }
     
     //On the periodic cycle (20ms), update the field pose estimate
     @Override
     public void periodic() {
-        double heading = navX.getAngle();
+        /*double heading = navX.getAngle();
         SmartDashboard.putNumber("Heading", heading);
         LimelightHelpers.SetRobotOrientation(LL_NAME, heading, 0, 0, 0, 0, 0);
         LimelightHelpers.PoseEstimate newEstimate = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(LL_NAME);
@@ -73,7 +163,7 @@ public class VisionSubsystem extends SubsystemBase{
             }
         }
         //SmartDashboard.putNumberArray("Detected Tag IDs", detectedTagIDs);
-        SmartDashboard.putString("Detected tag IDs", detectedTagIDs);
+        SmartDashboard.putString("Detected tag IDs", detectedTagIDs);*/
     }
 
     //Use this function to fetch the current pose of the robot estimated by limelight

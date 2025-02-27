@@ -18,11 +18,13 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.Constants.constField;
 import frc.robot.Constants.RobotStates.CoralStates;
+import frc.robot.commands.AddVisionMeasurement;
 import frc.robot.commands.DriveManual;
 import frc.robot.commands.SetCoralState;
 import frc.robot.commands.swervedrive.drivebase.AbsoluteDriveAdv;
@@ -61,24 +63,6 @@ public class RobotContainer
   private final AlgaePivot algaePivot = new AlgaePivot();
   private final AlgaeIntake algaeIntake = new AlgaeIntake();
   private final SendableChooser<Command> autoChooser;
-  // Applies deadbands and inverts controls because joysticks
-  // are back-right positive while robot
-  // controls are front-left positive
-  // left stick controls translation
-  // right stick controls the rotational velocity 
-  // buttons are quick rotation positions to different ways to face
-  // WARNING: default buttons are on the same buttons as the ones defined in configureBindings
-  AbsoluteDriveAdv closedAbsoluteDriveAdv = new AbsoluteDriveAdv(drivebase,
-                                                                 () -> -MathUtil.applyDeadband(driverXbox.getLeftY(),
-                                                                                               OperatorConstants.LEFT_Y_DEADBAND),
-                                                                 () -> -MathUtil.applyDeadband(driverXbox.getLeftX(),
-                                                                                               OperatorConstants.DEADBAND),
-                                                                 () -> -MathUtil.applyDeadband(driverXbox.getRightX(),
-                                                                                               OperatorConstants.RIGHT_X_DEADBAND),
-                                                                 driverXbox.getHID()::getYButtonPressed,
-                                                                 driverXbox.getHID()::getAButtonPressed,
-                                                                 driverXbox.getHID()::getXButtonPressed,
-                                                                 driverXbox.getHID()::getBButtonPressed);
 
   /**
    * Converts driver input into a field-relative ChassisSpeeds that is controlled by angular velocity.
@@ -139,6 +123,11 @@ public class RobotContainer
 
   Command driveSetpointGenSim = drivebase.driveWithSetpointGeneratorFieldRelative(driveDirectAngleSim);
 
+  public Command AddVisionMeasurement() {
+    return new AddVisionMeasurement(drivebase, visionSubsystem)
+        .withInterruptBehavior(Command.InterruptionBehavior.kCancelIncoming).ignoringDisable(true);
+  }
+
   /**
    * The container for the robot. Contains subsystems, OI devices, and commands.
    */
@@ -148,7 +137,16 @@ public class RobotContainer
     // Configure the trigger bindings
     configureBindings();
     DriverStation.silenceJoystickConnectionWarning(true);
-    NamedCommands.registerCommand("test", Commands.print("I EXIST"));
+    NamedCommands.registerCommand("C_LOAD", new SetCoralState(arm, elevator, CoralStates.C_LOAD));
+    NamedCommands.registerCommand("C_L1", new SetCoralState(arm, elevator, CoralStates.C_L1));
+    NamedCommands.registerCommand("C_L2", new SetCoralState(arm, elevator, CoralStates.C_L2));
+    NamedCommands.registerCommand("C_L3", new SetCoralState(arm, elevator, CoralStates.C_L3));
+    NamedCommands.registerCommand("C_L4", new SetCoralState(arm, elevator, CoralStates.C_L4));
+
+    NamedCommands.registerCommand("C_INTAKE", coralIntake.intakeCoral());
+    NamedCommands.registerCommand("C_OUTTAKE", coralIntake.outtakeCoral());
+    NamedCommands.registerCommand("C_STOPINTAKE", coralIntake.stopIntake());
+
 
     SmartDashboard.putData(autoChooser);
 
@@ -164,6 +162,13 @@ public class RobotContainer
    */
   private void configureBindings()
   {
+    Trigger wristGreaterThan80DegreesTrigger = new Trigger(() -> {
+      if (arm.getWristEncoderPos() > 80) {
+        return true;
+      }
+      return false;
+    });
+
     Trigger YAxisJoystickTrigger = new Trigger(() -> {
       if (MathUtil.applyDeadband(driverPartnerXbox.getLeftY(), 0.01) > 0.01|| 
           MathUtil.applyDeadband(driverPartnerXbox.getLeftY(), 0.01) < -0.01 ||
@@ -238,6 +243,19 @@ public class RobotContainer
         arm.setArmPivotTarget(Constants.Arm.C_LOADING_ANGLE),
         elevator.setElevatorTarget(Constants.Elevator.C_LOADING_POS)
       ));*/
+
+    driverPartnerXbox
+      .rightStick()
+      .onTrue(
+        new SequentialCommandGroup(
+          new ParallelCommandGroup(
+            arm.setWristTarget(Constants.Wrist.C_GROUND_ANGLE),
+            elevator.setElevatorTarget(Constants.Elevator.C_GROUND_POS)
+          ),
+          Commands.waitUntil(wristGreaterThan80DegreesTrigger),
+          arm.setArmPivotTarget(Constants.Wrist.C_GROUND_ANGLE)
+        )
+      );
 
     driverPartnerXbox
       .povLeft()
