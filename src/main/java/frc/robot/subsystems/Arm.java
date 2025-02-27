@@ -116,10 +116,13 @@ public class Arm extends SubsystemBase {
 
     public Command setManualArm(DoubleSupplier leftJoystick, DoubleSupplier rightJoystick) {
         return run(() -> {
-            armAngleSetPoint += leftJoystick.getAsDouble();
             wristAngleSetPoint += rightJoystick.getAsDouble();
-            reachArmPivotTarget(armAngleSetPoint);
             reachWristTarget(wristAngleSetPoint);
+            if (wristAngleSetPoint < 80 && armAngleSetPoint > 45) {
+                armAngleSetPoint = 45;
+            }
+            armAngleSetPoint += leftJoystick.getAsDouble();
+            reachArmPivotTarget(armAngleSetPoint);
         });
     }
 
@@ -192,11 +195,11 @@ public class Arm extends SubsystemBase {
         wristController.setReference(target, ControlType.kMAXMotionPositionControl);
     }
 
-    /*
+    
     public Command setWristTarget(double target) {
         wristAngleSetPoint = target;
         return run(() -> reachWristTarget(target));
-    }*/
+    }
 
     public void resetArmPivotEncoder() {
         armPivotEncoder.setPosition(0);
@@ -210,7 +213,7 @@ public class Arm extends SubsystemBase {
         return armPivotEncoder.getPosition();
     }
 
-    public double getwristEncoderPos() {
+    public double getWristEncoderPos() {
         return wristEncoder.getPosition();
     }
 
