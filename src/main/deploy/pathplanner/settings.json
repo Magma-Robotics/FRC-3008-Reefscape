@@ -11,7 +11,8 @@
   ],
   "autoFolders": [
     "Left Comp Autos",
-    "Middle Comp Autos"
+    "Middle Comp Autos",
+    "Right Comp Autos"
   ],
   "defaultMaxVel": 3.0,
   "defaultMaxAccel": 3.0,
