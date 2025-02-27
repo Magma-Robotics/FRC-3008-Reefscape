@@ -1,0 +1,116 @@
+{
+  "version": "2025.0",
+  "command": {
+    "type": "sequential",
+    "data": {
+      "commands": [
+        {
+          "type": "path",
+          "data": {
+            "pathName": "LeftAuto1 - Drive Near Reef"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "C_L1"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "LeftAuto2 - Drive To Reef"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "C_OUTTAKE"
+          }
+        },
+        {
+          "type": "wait",
+          "data": {
+            "waitTime": 0.6
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "C_INTAKE"
+          }
+        },
+        {
+          "type": "parallel",
+          "data": {
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "LeftAuto3B - Drive Away Reef To Coral Station"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "C_LOAD"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "wait",
+          "data": {
+            "waitTime": 0.6
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "C_STOPINTAKE"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "LeftAuto4B - Coral Station to Near Reef"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "C_L4"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "LeftAuto5B - Reef"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "C_OUTTAKE"
+          }
+        },
+        {
+          "type": "wait",
+          "data": {
+            "waitTime": 0.6
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "C_STOPINTAKE"
+          }
+        }
+      ]
+    }
+  },
+  "resetOdom": true,
+  "folder": "Comp Autos",
+  "choreoAuto": false
+}

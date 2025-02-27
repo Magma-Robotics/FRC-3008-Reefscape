@@ -1,0 +1,55 @@
+{
+  "version": "2025.0",
+  "command": {
+    "type": "sequential",
+    "data": {
+      "commands": [
+        {
+          "type": "path",
+          "data": {
+            "pathName": "LeftAuto1 - Drive Near Reef"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "C_L4"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "LeftAuto2 - Drive To Reef"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "C_OUTTAKE"
+          }
+        },
+        {
+          "type": "wait",
+          "data": {
+            "waitTime": 0.6
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "C_STOPINTAKE"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "LeftAuto3A - Drive Away Reef"
+          }
+        }
+      ]
+    }
+  },
+  "resetOdom": true,
+  "folder": "Comp Autos",
+  "choreoAuto": false
+}
