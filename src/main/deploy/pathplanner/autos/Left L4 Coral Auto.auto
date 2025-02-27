@@ -50,6 +50,6 @@
     }
   },
   "resetOdom": true,
-  "folder": "Comp Autos",
+  "folder": "Left Comp Autos",
   "choreoAuto": false
 }

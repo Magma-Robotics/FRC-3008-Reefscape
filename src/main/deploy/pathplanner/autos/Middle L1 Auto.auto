@@ -7,7 +7,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "LeftAuto1 - Drive Near Reef"
+            "pathName": "MiddleAuto1 Drive Near Reef"
           }
         },
         {
@@ -17,9 +17,15 @@
           }
         },
         {
+          "type": "wait",
+          "data": {
+            "waitTime": 0.5
+          }
+        },
+        {
           "type": "path",
           "data": {
-            "pathName": "LeftAuto2 - Drive To Reef"
+            "pathName": "MiddleAuto2 Drive To Reef"
           }
         },
         {
@@ -39,17 +45,11 @@
           "data": {
             "name": "C_STOPINTAKE"
           }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "LeftAuto3A - Drive Away Reef"
-          }
         }
       ]
     }
   },
   "resetOdom": true,
-  "folder": "Left Comp Autos",
+  "folder": "Middle Comp Autos",
   "choreoAuto": false
 }
