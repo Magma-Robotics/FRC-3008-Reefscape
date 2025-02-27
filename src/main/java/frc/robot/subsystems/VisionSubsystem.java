@@ -54,11 +54,11 @@ public class VisionSubsystem extends SubsystemBase{
 
     public PoseEstimate getLastPoseEstimate() {
         return lastEstimate;
-      }
+    }
     
-      public void setMegaTag2(boolean useMegaTag2) {
+    public void setMegaTag2(boolean useMegaTag2) {
         this.useMegaTag2 = useMegaTag2;
-      }
+    }
 
     public boolean rejectUpdate(PoseEstimate poseEstimate, AngularVelocity gyroRate) {
     // Angular velocity is too high to have accurate vision

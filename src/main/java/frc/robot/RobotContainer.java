@@ -147,6 +147,7 @@ public class RobotContainer
     NamedCommands.registerCommand("C_OUTTAKE", coralIntake.outtakeCoral());
     NamedCommands.registerCommand("C_STOPINTAKE", coralIntake.stopIntake());
 
+    visionSubsystem.setMegaTag2(true);
 
     SmartDashboard.putData(autoChooser);
 
