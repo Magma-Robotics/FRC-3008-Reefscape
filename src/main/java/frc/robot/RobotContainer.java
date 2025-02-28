@@ -133,19 +133,12 @@ public class RobotContainer
    */
   public RobotContainer()
   {
+    registerNamedCommands();
     autoChooser = AutoBuilder.buildAutoChooser();
+
     // Configure the trigger bindings
     configureBindings();
     DriverStation.silenceJoystickConnectionWarning(true);
-    NamedCommands.registerCommand("C_LOAD", new SetCoralState(arm, elevator, CoralStates.C_LOAD));
-    NamedCommands.registerCommand("C_L1", new SetCoralState(arm, elevator, CoralStates.C_L1));
-    NamedCommands.registerCommand("C_L2", new SetCoralState(arm, elevator, CoralStates.C_L2));
-    NamedCommands.registerCommand("C_L3", new SetCoralState(arm, elevator, CoralStates.C_L3));
-    NamedCommands.registerCommand("C_L4", new SetCoralState(arm, elevator, CoralStates.C_L4));
-
-    NamedCommands.registerCommand("C_INTAKE", coralIntake.intakeCoral());
-    NamedCommands.registerCommand("C_OUTTAKE", coralIntake.outtakeCoral());
-    NamedCommands.registerCommand("C_STOPINTAKE", coralIntake.stopIntake());
 
     visionSubsystem.setMegaTag2(true);
 
@@ -164,7 +157,7 @@ public class RobotContainer
   private void configureBindings()
   {
     Trigger wristGreaterThan80DegreesTrigger = new Trigger(() -> {
-      if (arm.getWristEncoderPos() > 80) {
+      if (arm.getWristEncoderPos() > 59) {
         return true;
       }
       return false;
@@ -182,9 +175,16 @@ public class RobotContainer
     });
 
     YAxisJoystickTrigger
-      .onTrue(arm.setManualArm(() -> MathUtil.applyDeadband(-driverPartnerXbox.getLeftY(), 0.01), 
-                               () -> MathUtil.applyDeadband(-driverPartnerXbox.getRightY(), 0.01)));
+      .onTrue(arm.setManualArmVoltageWithLimiter(() -> MathUtil.applyDeadband(-driverPartnerXbox.getLeftY(), 0.01), 
+                                                 () -> MathUtil.applyDeadband(-driverPartnerXbox.getRightY(), 0.01)))
+      .onFalse(arm.stopWholeArm());
 
+      /* //if limiter is bugging out, then uncomment this and comment out the thing above this
+    YAxisJoystickTrigger
+      .onTrue(arm.setManualArmVoltage(() -> MathUtil.applyDeadband(-driverPartnerXbox.getLeftY(), 0.01), 
+                                      () -> MathUtil.applyDeadband(-driverPartnerXbox.getRightY(), 0.01)))
+      .onFalse(arm.stopWholeArm());
+*/
     drivebase.setDefaultCommand(
       new DriveManual(
         drivebase, () -> driverXbox.getLeftX(), () -> driverXbox.getLeftY(), 
@@ -212,10 +212,14 @@ public class RobotContainer
       .onTrue(hang.hangUp())
       .onFalse(hang.stopHang());
 
-    //driverXbox
-    //  .b()
-    //  .onTrue(arm.setWristTarget(Constants.Wrist.C_LOADING_ANGLE));
+    /*driverXbox
+      .leftBumper()
+      .onTrue(drivebase.driveToPose(drivebase.getDesiredReef(true)));
 
+    driverXbox
+      .rightBumper()
+      .onTrue(drivebase.driveToPose(drivebase.getDesiredReef(false)));
+*/
     /*driverXbox
       .rightBumper()
       .onTrue(drivebase.driveToReef(false));
@@ -245,7 +249,7 @@ public class RobotContainer
         elevator.setElevatorTarget(Constants.Elevator.C_LOADING_POS)
       ));*/
 
-    driverPartnerXbox
+    /*driverPartnerXbox
       .rightStick()
       .onTrue(
         new SequentialCommandGroup(
@@ -253,10 +257,14 @@ public class RobotContainer
             arm.setWristTarget(Constants.Wrist.C_GROUND_ANGLE),
             elevator.setElevatorTarget(Constants.Elevator.C_GROUND_POS)
           ),
-          Commands.waitUntil(wristGreaterThan80DegreesTrigger),
+          Commands.waitSeconds(0.3),
           arm.setArmPivotTarget(Constants.Wrist.C_GROUND_ANGLE)
         )
-      );
+      );*/
+
+    driverPartnerXbox
+      .rightStick()
+      .onTrue(new SetCoralState(arm, elevator, CoralStates.C_GROUND));
 
     driverPartnerXbox
       .povLeft()
@@ -376,5 +384,17 @@ public class RobotContainer
   public void setMotorBrake(boolean brake)
   {
     drivebase.setMotorBrake(brake);
+  }
+
+  public void registerNamedCommands() {
+    NamedCommands.registerCommand("C_LOAD", new SetCoralState(arm, elevator, CoralStates.C_LOAD));
+    NamedCommands.registerCommand("C_L1", new SetCoralState(arm, elevator, CoralStates.C_L1));
+    NamedCommands.registerCommand("C_L2", new SetCoralState(arm, elevator, CoralStates.C_L2));
+    NamedCommands.registerCommand("C_L3", new SetCoralState(arm, elevator, CoralStates.C_L3));
+    NamedCommands.registerCommand("C_L4", new SetCoralState(arm, elevator, CoralStates.C_L4));
+
+    NamedCommands.registerCommand("C_INTAKE", coralIntake.intakeCoral());
+    NamedCommands.registerCommand("C_OUTTAKE", coralIntake.outtakeCoral());
+    NamedCommands.registerCommand("C_STOPINTAKE", coralIntake.stopIntake());
   }
 }

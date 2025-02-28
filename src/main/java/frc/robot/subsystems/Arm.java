@@ -118,11 +118,52 @@ public class Arm extends SubsystemBase {
         return run(() -> {
             wristAngleSetPoint += rightJoystick.getAsDouble();
             reachWristTarget(wristAngleSetPoint);
-            if (wristAngleSetPoint < 80 && armAngleSetPoint > 45) {
+            if (wristAngleSetPoint < 59 && armAngleSetPoint > 45) {
                 armAngleSetPoint = 45;
             }
             armAngleSetPoint += leftJoystick.getAsDouble();
             reachArmPivotTarget(armAngleSetPoint);
+        });
+    }
+
+    public Command stopWholeArm() {
+        return run(() -> {
+            armPivot.set(0);
+            wrist.set(0);
+        });
+    }
+
+    public Command setManualArmVoltageWithLimiter(DoubleSupplier leftJoystick, DoubleSupplier rightJoystick) {
+        return run(() -> {
+            double armSpeed = leftJoystick.getAsDouble() * 0.6;
+            double wristSpeed = rightJoystick.getAsDouble() * 0.6;
+            if (armAngleSetPoint <= 45 || wristAngleSetPoint >= 59) {
+                wrist.set(wristSpeed);
+                armPivot.set(armSpeed);
+                wristAngleSetPoint = wristEncoder.getPosition();
+                armAngleSetPoint = armPivotEncoder.getPosition();
+            }
+            else if (wristAngleSetPoint < 59 && armAngleSetPoint > 45 && armSpeed <= 0) {
+                wrist.set(wristSpeed);
+                armPivot.set(armSpeed);
+                wristAngleSetPoint = wristEncoder.getPosition();
+                armAngleSetPoint = armPivotEncoder.getPosition();
+            }
+            else if (wristAngleSetPoint < 59 && armAngleSetPoint > 45 && armSpeed >= 0) {
+                wrist.set(wristSpeed);
+                wristAngleSetPoint = wristEncoder.getPosition();
+            }
+        });
+    }
+
+    public Command setManualArmVoltage(DoubleSupplier leftJoystick, DoubleSupplier rightJoystick) {
+        return run(() -> {
+            double armSpeed = leftJoystick.getAsDouble() * 0.6;
+            double wristSpeed = rightJoystick.getAsDouble() * 0.6;
+            wrist.set(wristSpeed);
+            armPivot.set(armSpeed);
+            wristAngleSetPoint = wristEncoder.getPosition();
+            armAngleSetPoint = armPivotEncoder.getPosition();
         });
     }
 

@@ -125,8 +125,8 @@ public class Elevator extends SubsystemBase {
             .pid(kElevatorP, kElevatorI, kElevatorD)
             .outputRange(-1, 1)
             .maxMotion
-            .maxAcceleration(10000)
-            .maxVelocity(20000)
+            .maxAcceleration(30000)
+            .maxVelocity(60000)
             .allowedClosedLoopError(0.5);
 
         rightElevatorConfig

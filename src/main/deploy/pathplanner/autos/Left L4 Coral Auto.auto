@@ -45,6 +45,12 @@
           "data": {
             "pathName": "LeftAuto3A - Drive Away Reef"
           }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "C_LOAD"
+          }
         }
       ]
     }

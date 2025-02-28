@@ -5,6 +5,12 @@
     "data": {
       "commands": [
         {
+          "type": "named",
+          "data": {
+            "name": "C_LOAD"
+          }
+        },
+        {
           "type": "path",
           "data": {
             "pathName": "MiddleAuto1 Drive Near Reef"
@@ -19,7 +25,7 @@
         {
           "type": "wait",
           "data": {
-            "waitTime": 0.5
+            "waitTime": 1.0
           }
         },
         {
@@ -44,6 +50,18 @@
           "type": "named",
           "data": {
             "name": "C_STOPINTAKE"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "MiddleAuto3 Drive Away Reef"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "C_LOAD"
           }
         }
       ]

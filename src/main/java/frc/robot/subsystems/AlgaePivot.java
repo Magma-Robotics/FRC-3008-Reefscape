@@ -72,7 +72,7 @@ public class AlgaePivot extends SubsystemBase {
 
     public Command algaePivotUp() {
         return run(() -> {
-            algaePivot.set(0.6);
+            algaePivot.set(-0.6);
             /*algaePivotTarget += 0.1;
             setAlgaePivotAngle(algaePivotTarget);*/
         });

@@ -1,0 +1,116 @@
+{
+  "version": "2025.0",
+  "command": {
+    "type": "sequential",
+    "data": {
+      "commands": [
+        {
+          "type": "path",
+          "data": {
+            "pathName": "RightAuto1 - Drive Near Reef"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "C_L1"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "RightAuto2 - Drive To Reef"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "C_OUTTAKE"
+          }
+        },
+        {
+          "type": "wait",
+          "data": {
+            "waitTime": 0.6
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "C_INTAKE"
+          }
+        },
+        {
+          "type": "parallel",
+          "data": {
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "RightAuto3B - Drive Coral Station"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "C_LOAD"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "wait",
+          "data": {
+            "waitTime": 0.6
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "C_STOPINTAKE"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "RightAuto4B - Station to Reef"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "C_L4"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "RightAuto5B - Drive To Reef"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "C_OUTTAKE"
+          }
+        },
+        {
+          "type": "wait",
+          "data": {
+            "waitTime": 0.6
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "C_STOPINTAKE"
+          }
+        }
+      ]
+    }
+  },
+  "resetOdom": true,
+  "folder": "Right Comp Autos",
+  "choreoAuto": false
+}

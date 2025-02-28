@@ -5,33 +5,21 @@
     "data": {
       "commands": [
         {
-          "type": "named",
-          "data": {
-            "name": "C_LOAD"
-          }
-        },
-        {
           "type": "path",
           "data": {
-            "pathName": "MiddleAuto1 Drive Near Reef"
+            "pathName": "RightAuto1 - Drive Near Reef"
           }
         },
         {
           "type": "named",
           "data": {
-            "name": "C_L4"
-          }
-        },
-        {
-          "type": "wait",
-          "data": {
-            "waitTime": 2.0
+            "name": "C_L1"
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "MiddleAuto2 Drive To Reef"
+            "pathName": "RightAuto2 - Drive To Reef"
           }
         },
         {
@@ -55,7 +43,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "MiddleAuto3 Drive Away Reef"
+            "pathName": "RightAuto3A - Drive Away Reef"
           }
         },
         {
@@ -68,6 +56,6 @@
     }
   },
   "resetOdom": true,
-  "folder": "Middle Comp Autos",
+  "folder": "Right Comp Autos",
   "choreoAuto": false
 }
