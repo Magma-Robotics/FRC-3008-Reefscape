@@ -77,6 +77,14 @@ public final class Constants
     public static final int kAlgaeIntakeID = 19;
   }
 
+  public static class Testing {
+    //keep all as false unless testing positions
+    public static final boolean testingArm = false;
+    public static final boolean testingWrist = false;
+    public static final boolean testingElevator = false;
+    public static final boolean testingCoralIntake = false;
+  }
+
   public static class Arm {
     public static final double armGearRatio = 300;
     public static final double kArmRotationsToDeg = (1/armGearRatio)*360;

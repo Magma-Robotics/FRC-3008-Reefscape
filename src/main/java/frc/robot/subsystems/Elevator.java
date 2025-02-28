@@ -240,6 +240,8 @@ public class Elevator extends SubsystemBase {
     public void periodic() {
         SmartDashboard.putNumber("Elevator Pos", leftElevatorEncoder.getPosition());
 
-        //reachElevatorTarget(SmartDashboard.getNumber("ElevatorSetpoint", 0));
+        if (Constants.Testing.testingElevator) {
+            reachElevatorTarget(SmartDashboard.getNumber("ElevatorSetpoint", 0));
+        }
     }
 }

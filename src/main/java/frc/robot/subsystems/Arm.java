@@ -275,7 +275,11 @@ public class Arm extends SubsystemBase {
         SmartDashboard.putNumber("Arm Position", armPivotEncoder.getPosition());
         SmartDashboard.putNumber("Wrist Position", wristEncoder.getPosition());
 
-        //reachArmPivotTarget(SmartDashboard.getNumber("ArmAngleSetpoint", 0));
-        //reachWristTarget(SmartDashboard.getNumber("WristAngleSetpoint", 0));
+        if (Constants.Testing.testingArm) {
+            reachArmPivotTarget(SmartDashboard.getNumber("ArmAngleSetpoint", 0));
+        }
+        if (Constants.Testing.testingWrist) {
+            reachWristTarget(SmartDashboard.getNumber("WristAngleSetpoint", 0));
+        }
     }
 }
