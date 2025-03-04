@@ -44,8 +44,8 @@ public class AlgaePivot extends SubsystemBase {
             .pid(kAlgaePivotP, kAlgaePivotI, kAlgaePivotD)
             .outputRange(-1, 1)
             .maxMotion
-            .maxVelocity(10)
-            .maxAcceleration(5)
+            .maxVelocity(Constants.Algae.maxAlgaePivotVelocity)
+            .maxAcceleration(Constants.Algae.maxAlgaePivotAcceleration)
             .allowedClosedLoopError(5);
         algaePivotConfig
             .encoder
@@ -64,7 +64,7 @@ public class AlgaePivot extends SubsystemBase {
 
     public Command algaePivotDown() {
         return run(() -> {
-            algaePivot.set(0.6);
+            algaePivot.set(Constants.Algae.pivotSpeed);
             /*algaePivotTarget -= 0.1;
             setAlgaePivotAngle(algaePivotTarget);*/
         });
@@ -72,7 +72,7 @@ public class AlgaePivot extends SubsystemBase {
 
     public Command algaePivotUp() {
         return run(() -> {
-            algaePivot.set(-0.6);
+            algaePivot.set(-Constants.Algae.pivotSpeed);
             /*algaePivotTarget += 0.1;
             setAlgaePivotAngle(algaePivotTarget);*/
         });

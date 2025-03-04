@@ -43,7 +43,7 @@ public class Hang extends SubsystemBase {
     }
 
     public Command hangUp() {
-        return runOnce(() -> hang.set(1));
+        return runOnce(() -> hang.set(Constants.Hang.hangSpeed));
         /*return run(() -> {
             if (hangPivotSetpoint > Constants.Hang.maxHangAngle) {
                 hangPivotSetpoint -= 0.1;
@@ -53,7 +53,7 @@ public class Hang extends SubsystemBase {
     }
 
     public Command hangDown() {
-        return runOnce(() -> hang.set(-1));
+        return runOnce(() -> hang.set(-Constants.Hang.hangSpeed));
         /*return run(() -> {
             if (hangPivotSetpoint > Constants.Hang.minHangAngle) {
                 hangPivotSetpoint += 0.1;

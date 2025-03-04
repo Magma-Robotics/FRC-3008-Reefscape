@@ -63,8 +63,8 @@ public class Arm extends SubsystemBase {
             .pid(kArmP, kArmI, kArmD)
             .outputRange(-1, 1)
             .maxMotion
-            .maxVelocity(300000)
-            .maxAcceleration(60000)
+            .maxVelocity(Constants.Arm.maxArmVelocity)
+            .maxAcceleration(Constants.Arm.maxArmAcceleration)
             .allowedClosedLoopError(1)
             .positionMode(MAXMotionPositionMode.kMAXMotionTrapezoidal);
         armPivotConfig
@@ -85,8 +85,8 @@ public class Arm extends SubsystemBase {
             .pid(kWristP, kWristI, kWristD)
             .outputRange(-1, 1)
             .maxMotion
-            .maxVelocity(11000)
-            .maxAcceleration(4000)
+            .maxVelocity(Constants.Wrist.maxWristVelocity)
+            .maxAcceleration(Constants.Wrist.maxWristAcceleration)
             .allowedClosedLoopError(1)
             .positionMode(MAXMotionPositionMode.kMAXMotionTrapezoidal);
         wristConfig

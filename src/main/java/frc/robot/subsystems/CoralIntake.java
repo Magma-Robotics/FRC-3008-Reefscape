@@ -33,11 +33,11 @@ public class CoralIntake extends SubsystemBase {
     }
     
     public Command intakeCoral() {
-        return runOnce(() -> intake.set(0.5));
+        return runOnce(() -> intake.set(Constants.Wrist.coralIntakeSpeed));
     }
 
     public Command outtakeCoral() {
-        return runOnce(() -> intake.set(-0.5));
+        return runOnce(() -> intake.set(-Constants.Wrist.coralIntakeSpeed));
     }
 
     public Command stopIntake() {
