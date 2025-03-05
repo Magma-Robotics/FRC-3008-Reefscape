@@ -68,7 +68,7 @@
         {
           "type": "wait",
           "data": {
-            "waitTime": 0.6
+            "waitTime": 1.2
           }
         },
         {
@@ -87,6 +87,12 @@
           "type": "named",
           "data": {
             "name": "C_L4"
+          }
+        },
+        {
+          "type": "wait",
+          "data": {
+            "waitTime": 1.8
           }
         },
         {
