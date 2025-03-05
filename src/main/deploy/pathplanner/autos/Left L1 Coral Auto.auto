@@ -5,6 +5,12 @@
     "data": {
       "commands": [
         {
+          "type": "named",
+          "data": {
+            "name": "C_LOAD"
+          }
+        },
+        {
           "type": "path",
           "data": {
             "pathName": "LeftAuto1 - Drive Near Reef"

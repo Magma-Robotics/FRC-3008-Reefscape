@@ -8,20 +8,20 @@
       },
       "prevControl": null,
       "nextControl": {
-        "x": 5.833293177540439,
-        "y": 6.200296994343503
+        "x": 6.444364025263632,
+        "y": 6.1823575257988015
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 3.291,
-        "y": 5.665
+        "x": 5.215,
+        "y": 5.625
       },
       "prevControl": {
-        "x": 4.221209270400753,
-        "y": 5.831233556350614
+        "x": 6.322954463493446,
+        "y": 5.892781073889195
       },
       "nextControl": null,
       "isLocked": false,
@@ -42,7 +42,7 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": -59.99999999999999
+    "rotation": -119.99999999999999
   },
   "reversed": false,
   "folder": "Left Comp Auto",

@@ -8,20 +8,20 @@
       },
       "prevControl": null,
       "nextControl": {
-        "x": 5.426262417218543,
-        "y": 0.6980546357615905
+        "x": 6.60477738864357,
+        "y": 1.2083925929536554
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 3.683,
-        "y": 2.282
+        "x": 5.23,
+        "y": 2.354
       },
       "prevControl": {
-        "x": 4.031675496688742,
-        "y": 1.5701208609271537
+        "x": 6.095823596831759,
+        "y": 1.6649558008034577
       },
       "nextControl": null,
       "isLocked": false,
@@ -42,7 +42,7 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 59.99999999999999
+    "rotation": 119.99999999999999
   },
   "reversed": false,
   "folder": "Right Comp Autos",

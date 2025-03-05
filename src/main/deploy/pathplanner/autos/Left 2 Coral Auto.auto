@@ -118,6 +118,18 @@
           "data": {
             "name": "C_STOPINTAKE"
           }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "LeftAuto6B - Drive Away Reef"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "C_LOAD"
+          }
         }
       ]
     }
