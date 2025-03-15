@@ -86,9 +86,14 @@ public final class Constants
   }
 
   public static class Arm {
+    //constants
     public static final double armGearRatio = 300;
     public static final double kArmRotationsToDeg = (1/armGearRatio)*360;
     public static final double kArmRPMtoDegPerSec = (360/(armGearRatio*60));
+
+    //configure
+    public static final double maxArmVelocity = 300000;
+    public static final double maxArmAcceleration = 60000;
     public static final double C_STOW_ANGLE = 0;
     public static final double C_L1_ANGLE = 35;
     public static final double C_L2_ANGLE = 15;
@@ -99,9 +104,15 @@ public final class Constants
   }
 
   public static class Wrist {
+    //constants
     public static final double wristGearRatio = 72;
     public static final double kWristRotationsToDeg = (1/wristGearRatio)*360;
     public static final double kWristRPMtoDegPerSec = (360/(wristGearRatio*60));
+
+    //configure
+    public static final double coralIntakeSpeed = 0.5;
+    public static final double maxWristVelocity = 11000;
+    public static final double maxWristAcceleration = 4000;
     public static final double C_STOW_ANGLE = 0;
     public static final double C_L1_ANGLE = 40;
     public static final double C_L2_ANGLE = 90;
@@ -113,6 +124,7 @@ public final class Constants
 
   public static class Elevator {
     //everything in inches
+    //constants
     public static final double gearRatio = 10.20408;
     public static final Distance wheelDiameter = Inches.of(1.756);
     public static final double kElevatorRotationsToInches = ((Math.PI*wheelDiameter.in(Inches))/gearRatio)*2;
@@ -120,28 +132,41 @@ public final class Constants
     public static final Distance elevatorHeightOffGround = Inches.of(9);
     public static final Distance kMinElevatorHeight = Inches.of(0);
     public static final Distance kMaxElevatorHeight = Inches.of(68);
+
+    //configure
+    public static final double maxElevatorVelocity = 60000;
+    public static final double maxElevatorAcceleration = 30000;
     public static final double C_STOW_POS = 0;
-    public static final double C_L1_POS = 0;//Centimeters.of(46).in(Inches)-9;
-    public static final double C_L2_POS = 15;//Centimeters.of(81).in(Inches)-9; //15
-    public static final double C_L3_POS = 35;//Centimeters.of(121).in(Inches)-9; //35
-    public static final double C_L4_POS = 68;//Centimeters.of(183).in(Inches)-9; //68
+    public static final double C_L1_POS = 0;
+    public static final double C_L2_POS = 15;
+    public static final double C_L3_POS = 35;
+    public static final double C_L4_POS = 68;
     public static final double C_LOADING_POS = 0;
     public static final double C_GROUND_POS = 0;
   }
 
   public static class Algae {
+    //constants
     public static final double gearRatio = 75;
     public static final double kAlgaePivotRotationsToDeg = (1/gearRatio)*360;
+
+    //configure
+    public static final double intakeSpeed = 1;
+    public static final double pivotSpeed = 0.6;
+    public static final double maxAlgaePivotVelocity = 10;
+    public static final double maxAlgaePivotAcceleration = 5;
     public static final double A_STOW_ANGLE = 0;
     public static final double A_PROCCESSOR_ANGLE = 0;
     public static final double A_LOADING_ANGLE = 0;
   }
 
   public static class Hang {
+    //constants
     public static final double gearRatio = 125;
     public static final double kHangPivotRotationsToDeg = (1/gearRatio)*360;
-    public static final double maxHangAngle = 0;
-    public static final double minHangAngle = 0;
+
+    //configure
+    public static final double hangSpeed = 1;
   }
 
   public static class RobotStates {

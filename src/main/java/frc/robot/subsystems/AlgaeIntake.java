@@ -30,11 +30,11 @@ public class AlgaeIntake extends SubsystemBase {
     }
 
     public Command intakeAlgae() {
-        return run(() -> algaeIntake.set(1));
+        return run(() -> algaeIntake.set(Constants.Algae.intakeSpeed));
     }
 
     public Command outtakeAlgae() {
-        return run(() -> algaeIntake.set(-1));
+        return run(() -> algaeIntake.set(-Constants.Algae.intakeSpeed));
     }
 
     public Command stopAlgaeIntake() {

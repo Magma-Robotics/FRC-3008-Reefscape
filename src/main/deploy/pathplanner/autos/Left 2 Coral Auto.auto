@@ -68,7 +68,7 @@
         {
           "type": "wait",
           "data": {
-            "waitTime": 0.6
+            "waitTime": 1.2
           }
         },
         {
@@ -92,7 +92,7 @@
         {
           "type": "wait",
           "data": {
-            "waitTime": 2.0
+            "waitTime": 1.8
           }
         },
         {
@@ -117,6 +117,18 @@
           "type": "named",
           "data": {
             "name": "C_STOPINTAKE"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "LeftAuto6B - Drive Away Reef"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "C_LOAD"
           }
         }
       ]
