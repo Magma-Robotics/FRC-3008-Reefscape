@@ -7,6 +7,9 @@ package frc.robot.subsystems;
 import static edu.wpi.first.units.Units.DegreesPerSecond;
 import static edu.wpi.first.units.Units.Meter;
 import static edu.wpi.first.units.Units.Meters;
+import static edu.wpi.first.units.Units.MetersPerSecond;
+import static edu.wpi.first.units.Units.Radians;
+import static edu.wpi.first.units.Units.RadiansPerSecond;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.commands.PathPlannerAuto;
@@ -21,6 +24,7 @@ import com.pathplanner.lib.util.swerve.SwerveSetpoint;
 import com.pathplanner.lib.util.swerve.SwerveSetpointGenerator;
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -30,11 +34,12 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.trajectory.Trajectory;
-import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Distance;
+import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.RobotState;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.Timer;
@@ -42,6 +47,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Config;
+import edu.wpi.first.units.*;
 import frc.robot.Constants;
 import frc.robot.LimelightHelpers;
 import frc.robot.Constants.constField;
@@ -92,6 +98,7 @@ public class SwerveSubsystem extends SubsystemBase
 //  private       Vision              vision;
 
   private Field2d field2d = new Field2d();
+  Pose2d desiredAlignmentPose = Pose2d.kZero;
 
   /**
    * Initialize {@link SwerveDrive} with the directory provided.
@@ -286,6 +293,13 @@ public class SwerveSubsystem extends SubsystemBase
     return new PathPlannerAuto(pathName);
   }
 
+  /**
+   * Returns the closest reef branch to the robot.
+   * 
+   * @param leftBranchRequested If we are requesting to align to the left or right
+   *                            branch
+   * @return The desired reef branch face to align to
+   */
   public Pose2d getDesiredReef(boolean leftBranchRequested) {
     // Get the closest reef branch face using either branch on the face
     List<Pose2d> reefPoses = constField.getReefPositions().get();
@@ -308,6 +322,25 @@ public class SwerveSubsystem extends SubsystemBase
     return desiredReef;
   }
 
+  //
+  public Pose2d getDesiredCoralStation(boolean farCoralStationRequested) {
+    // Get the closest coral station
+    List<Pose2d> coralStationPoses = constField.getCoralStationPositions().get();
+    Pose2d currentPose = getPose();
+    Pose2d desiredCoralStation = currentPose.nearest(coralStationPoses);
+    int closestCoralStationIndex = coralStationPoses.indexOf(desiredCoralStation);
+
+    // If we were closer to the left branch but selected the right branch (or
+    // vice-versa), switch to our desired branch
+    if (farCoralStationRequested && (closestCoralStationIndex % 2 == 1)) {
+      desiredCoralStation = coralStationPoses.get(closestCoralStationIndex - 1);
+    } else if (!farCoralStationRequested && (closestCoralStationIndex % 2 == 0)) {
+      desiredCoralStation = coralStationPoses.get(closestCoralStationIndex + 1);
+    }
+
+    return desiredCoralStation;
+  }
+
   public Pose2d getDesiredProcessor() {
     // Get the closest processor
     List<Pose2d> processorPoses = constField.getProcessorPositions().get();
@@ -316,6 +349,119 @@ public class SwerveSubsystem extends SubsystemBase
 
     return desiredProcessor;
   }
+
+  /**
+   * Returns the rotational velocity calculated with PID control to reach the
+   * given rotation. This must be called every loop until you reach the given
+   * rotation.
+   * 
+   * @param desiredYaw The desired yaw to rotate to
+   * @return The desired velocity needed to rotate to that position.
+   */
+  public AngularVelocity getVelocityToRotate(Rotation2d desiredYaw) {
+    double yawSetpoint = Constants.Drive.TELEOP_AUTO_ALIGN.TELEOP_AUTO_ALIGN_CONTROLLER.getThetaController()
+        .calculate(getHeading().getRadians(), desiredYaw.getRadians());
+
+    // limit the PID output to our maximum rotational speed
+    yawSetpoint = MathUtil.clamp(yawSetpoint, -Constants.Drive.TURN_SPEED.in(Units.RadiansPerSecond),
+        Constants.Drive.TURN_SPEED.in(Units.RadiansPerSecond));
+
+    return Units.RadiansPerSecond.of(yawSetpoint);
+  }
+
+  /**
+   * Calculate the ChassisSpeeds needed to align the robot to the desired pose.
+   * This must be called every loop until you reach the desired pose.
+   * 
+   * @param desiredPose The desired pose to align to
+   * @return The ChassisSpeeds needed to align the robot to the desired pose
+   */
+  public ChassisSpeeds getAlignmentSpeeds(Pose2d desiredPose) {
+    desiredAlignmentPose = desiredPose;
+    // TODO: This might run better if instead of 0, we use
+    // constDrivetrain.TELEOP_AUTO_ALIGN.DESIRED_AUTO_ALIGN_SPEED.in(Units.MetersPerSecond);.
+    // I dont know why. it might though
+    return Constants.Drive.TELEOP_AUTO_ALIGN.TELEOP_AUTO_ALIGN_CONTROLLER.calculate(getPose(), desiredPose, 
+      Constants.Drive.TELEOP_AUTO_ALIGN.DESIRED_AUTO_ALIGN_SPEED.in(Units.MetersPerSecond),
+      desiredPose.getRotation());
+  }
+
+  public void rotationalAutoAlign(Distance distanceFromTarget, Pose2d desiredTarget,
+      LinearVelocity xVelocity,
+      LinearVelocity yVelocity,
+      AngularVelocity rVelocity, double elevatorMultiplier, Distance maxAutoDriveDistance) {
+
+    //int redAllianceMultiplier = constField.isRedAlliance() ? -1 : 1;
+
+    // Rotational-only auto-align
+    drive(
+        new Translation2d(xVelocity.in(Units.MetersPerSecond),
+            yVelocity.in(Units.MetersPerSecond)),
+        getVelocityToRotate(desiredTarget.getRotation()).in(Units.RadiansPerSecond), true);
+  }
+
+  public void autoAlign(Distance distanceFromTarget, Pose2d desiredTarget,
+      LinearVelocity xVelocity,
+      LinearVelocity yVelocity,
+      AngularVelocity rVelocity, double elevatorMultiplier, Distance maxAutoDriveDistance) {
+    desiredAlignmentPose = desiredTarget;
+    //int redAllianceMultiplier = constField.isRedAlliance() ? -1 : 1;
+
+    if (distanceFromTarget.gte(maxAutoDriveDistance)) {
+      // Rotational-only auto-align
+      drive(
+          new Translation2d(xVelocity.in(Units.MetersPerSecond),
+              yVelocity.in(Units.MetersPerSecond)),
+          getVelocityToRotate(desiredTarget.getRotation()).in(Units.RadiansPerSecond), true);
+    } else {
+      // Full auto-align
+      ChassisSpeeds desiredChassisSpeeds = getAlignmentSpeeds(desiredTarget);
+
+      // Speed limit based on elevator height
+      LinearVelocity linearSpeedLimit = Constants.Drive.OBSERVED_DRIVE_SPEED.times(elevatorMultiplier);
+      AngularVelocity angularSpeedLimit = Constants.Drive.TURN_SPEED.times(elevatorMultiplier);
+
+      if (!RobotState.isAutonomous()) {
+        if ((desiredChassisSpeeds.vxMetersPerSecond > linearSpeedLimit.in(Units.MetersPerSecond))
+            || (desiredChassisSpeeds.vyMetersPerSecond > linearSpeedLimit.in(Units.MetersPerSecond))
+            || (desiredChassisSpeeds.omegaRadiansPerSecond > angularSpeedLimit.in(Units.RadiansPerSecond))) {
+
+          desiredChassisSpeeds.vxMetersPerSecond = MathUtil.clamp(desiredChassisSpeeds.vxMetersPerSecond, 0,
+              linearSpeedLimit.in(MetersPerSecond));
+          desiredChassisSpeeds.vyMetersPerSecond = MathUtil.clamp(desiredChassisSpeeds.vyMetersPerSecond, 0,
+              linearSpeedLimit.in(MetersPerSecond));
+          desiredChassisSpeeds.omegaRadiansPerSecond = MathUtil.clamp(desiredChassisSpeeds.omegaRadiansPerSecond, 0,
+              angularSpeedLimit.in(RadiansPerSecond));
+        }
+      }
+
+      drive(desiredChassisSpeeds);
+    }
+  }
+
+  public boolean isAtRotation(Rotation2d desiredRotation) {
+    return (getHeading().getMeasure()
+        .compareTo(desiredRotation.getMeasure().minus(Constants.Drive.TELEOP_AUTO_ALIGN.AT_ROTATION_TOLERANCE)) > 0) &&
+        getHeading().getMeasure()
+            .compareTo(desiredRotation.getMeasure().plus(Constants.Drive.TELEOP_AUTO_ALIGN.AT_ROTATION_TOLERANCE)) < 0;
+  }
+
+  public boolean isAtPosition(Pose2d desiredPose2d) {
+    return Units.Meters
+        .of(getPose().getTranslation().getDistance(desiredPose2d.getTranslation()))
+        .lte(Constants.Drive.TELEOP_AUTO_ALIGN.AT_POINT_TOLERANCE);
+  }
+
+  public Boolean isAligned() {
+    return (desiredAlignmentPose.getTranslation().getDistance(
+        getPose().getTranslation()) <= Constants.Drive.TELEOP_AUTO_ALIGN.AUTO_ALIGNMENT_TOLERANCE.in(Units.Meters))
+        && isAtRotation(desiredAlignmentPose.getRotation());
+  }
+
+  public boolean atPose(Pose2d desiredPose) {
+    return isAtRotation(desiredPose.getRotation()) && isAtPosition(desiredPose);
+  }
+
 
   public void resetPoseWithAprilTag() {
     Pose2d currentPose = getPose();
@@ -352,7 +498,7 @@ public class SwerveSubsystem extends SubsystemBase
 // Create the constraints to use while pathfinding
     PathConstraints constraints = new PathConstraints(
         1/*swerveDrive.getMaximumChassisVelocity()*/, 1,
-        swerveDrive.getMaximumChassisAngularVelocity(), Units.degreesToRadians(720));
+        swerveDrive.getMaximumChassisAngularVelocity(), Units.Degrees.of(720).in(Radians));
 
 // Since AutoBuilder is configured, we can use it to build pathfinding commands
     return AutoBuilder.pathfindToPose(

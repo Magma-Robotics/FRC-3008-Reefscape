@@ -199,6 +199,40 @@ public class Arm extends SubsystemBase {
         }
     }
 
+    public Command setArmPivotStateCommand(Constants.RobotStates.CoralStates state) {
+        return runOnce(() -> {
+            switch(state) {
+                case C_STOW:
+                    reachArmPivotTarget(Constants.Arm.C_STOW_ANGLE);
+                    break;
+                
+                case C_L1:
+                    reachArmPivotTarget(Constants.Arm.C_L1_ANGLE);
+                    break;
+                
+                case C_L2:
+                    reachArmPivotTarget(Constants.Arm.C_L2_ANGLE);
+                    break;
+                
+                case C_L3:
+                    reachArmPivotTarget(Constants.Arm.C_L3_ANGLE);
+                    break;
+    
+                case C_L4:
+                    reachArmPivotTarget(Constants.Arm.C_L4_ANGLE);
+                    break;
+    
+                case C_LOAD:
+                    reachArmPivotTarget(Constants.Arm.C_LOADING_ANGLE);
+                    break;
+    
+                case C_GROUND:
+                    reachArmPivotTarget(Constants.Arm.C_GROUND_ANGLE);
+                    break;
+            }
+        });
+    }
+
     public void setWristState(CoralStates state) {
         switch(state) {
             case C_STOW:

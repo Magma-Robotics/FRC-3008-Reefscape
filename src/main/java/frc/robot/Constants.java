@@ -9,20 +9,28 @@ import static edu.wpi.first.units.Units.Feet;
 import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Meter;
 import static edu.wpi.first.units.Units.Meters;
+import static edu.wpi.first.units.Units.MetersPerSecond;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
 
+import edu.wpi.first.math.controller.HolonomicDriveController;
+import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation3d;
-import edu.wpi.first.math.util.Units;
+import edu.wpi.first.math.trajectory.TrapezoidProfile;
+import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Distance;
+import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.units.*;
 import swervelib.math.Matter;
 
 /**
@@ -37,9 +45,9 @@ public final class Constants
 {
 
   public static final double ROBOT_MASS = (120) * 0.453592; // 32lbs * kg per pound
-  public static final Matter CHASSIS    = new Matter(new Translation3d(0, 0, Units.inchesToMeters(8)), ROBOT_MASS);
+  public static final Matter CHASSIS    = new Matter(new Translation3d(0, 0, Units.Inches.of(8).in(Meters)), ROBOT_MASS);
   public static final double LOOP_TIME  = 0.13; //s, 20ms + 110ms sprk max velocity lag
-  public static final double MAX_SPEED  = Units.feetToMeters(12.66);
+  public static final double MAX_SPEED  = Units.Feet.of(12.66).in(Meters);
   // Maximum speed of the robot in meters per second, used to limit acceleration.
 
 //  public static final class AutonConstants
@@ -100,7 +108,7 @@ public final class Constants
     public static final double C_L3_ANGLE = 20;
     public static final double C_L4_ANGLE = 25;
     public static final double C_LOADING_ANGLE = 10;
-    public static final double C_GROUND_ANGLE = 83;
+    public static final double C_GROUND_ANGLE = 89;
   }
 
   public static class Wrist {
@@ -115,11 +123,11 @@ public final class Constants
     public static final double maxWristAcceleration = 4000;
     public static final double C_STOW_ANGLE = 0;
     public static final double C_L1_ANGLE = 40;
-    public static final double C_L2_ANGLE = 90;
-    public static final double C_L3_ANGLE = 90;
-    public static final double C_L4_ANGLE = 80;
+    public static final double C_L2_ANGLE = 75;
+    public static final double C_L3_ANGLE = 78;
+    public static final double C_L4_ANGLE = 75;
     public static final double C_LOADING_ANGLE = 10;
-    public static final double C_GROUND_ANGLE = 60;
+    public static final double C_GROUND_ANGLE = 70;
   }
 
   public static class Elevator {
@@ -138,9 +146,9 @@ public final class Constants
     public static final double maxElevatorAcceleration = 30000;
     public static final double C_STOW_POS = 0;
     public static final double C_L1_POS = 0;
-    public static final double C_L2_POS = 15;
-    public static final double C_L3_POS = 35;
-    public static final double C_L4_POS = 68;
+    public static final double C_L2_POS = 12;
+    public static final double C_L3_POS = 34;
+    public static final double C_L4_POS = 66;
     public static final double C_LOADING_POS = 0;
     public static final double C_GROUND_POS = 0;
   }
@@ -188,9 +196,41 @@ public final class Constants
   }
 
   public static class Drive {
-    public static final Distance MAX_AUTO_DRIVE_CORAL_STATION_DISTANCE = Meters.of(10);
-    public static final Distance MAX_AUTO_DRIVE_REEF_DISTANCE = Meters.of(1);
-    public static final Distance MAX_AUTO_DRIVE_PROCESSOR_DISTANCE = Meters.of(5);
+    public static final AngularVelocity TURN_SPEED = Units.DegreesPerSecond.of(360);
+    public static final LinearVelocity OBSERVED_DRIVE_SPEED = Units.FeetPerSecond.of(12.66);
+    public static class TELEOP_AUTO_ALIGN {
+      public static final LinearVelocity DESIRED_AUTO_ALIGN_SPEED = Units.MetersPerSecond
+          .of(MAX_SPEED / 4);
+
+      public static final Distance MAX_AUTO_DRIVE_CORAL_STATION_DISTANCE = Units.Meters.of(10);
+      public static final Distance MAX_AUTO_DRIVE_REEF_DISTANCE = Units.Meters.of(1);
+      public static final Distance MAX_AUTO_DRIVE_PROCESSOR_DISTANCE = Units.Meters.of(3);
+
+      public static final PIDController TRANS_CONTROLLER = new PIDController(
+          4,
+          0,
+          0);
+      public static final Distance AT_POINT_TOLERANCE = Units.Inches.of(0.5);
+
+      public static final ProfiledPIDController ROTATION_CONTROLLER = new ProfiledPIDController(
+          3, 0, 0, new TrapezoidProfile.Constraints(TURN_SPEED.in(Units.DegreesPerSecond),
+              Math.pow(TURN_SPEED.in(Units.DegreesPerSecond), 2)));
+      public static final Angle AT_ROTATION_TOLERANCE = Units.Degrees.of(1);
+
+      public static final Distance AUTO_ALIGNMENT_TOLERANCE = Units.Inches.of(1);
+
+      static {
+        TRANS_CONTROLLER.setTolerance(AT_POINT_TOLERANCE.in(Units.Meters));
+
+        ROTATION_CONTROLLER.enableContinuousInput(0, 360);
+        ROTATION_CONTROLLER.setTolerance(AT_ROTATION_TOLERANCE.in(Units.Degrees));
+      }
+
+      public static HolonomicDriveController TELEOP_AUTO_ALIGN_CONTROLLER = new HolonomicDriveController(
+          TRANS_CONTROLLER,
+          TRANS_CONTROLLER,
+          ROTATION_CONTROLLER);
+    }
   }
 
   public static class constField {

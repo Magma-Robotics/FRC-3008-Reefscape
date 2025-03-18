@@ -7,18 +7,21 @@ package frc.robot;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.Pair;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.RobotBase;
+import edu.wpi.first.wpilibj.RobotState;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
+import edu.wpi.first.wpilibj2.command.WaitUntilCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.OperatorConstants;
@@ -38,6 +41,8 @@ import frc.robot.subsystems.SwerveSubsystem;
 import frc.robot.subsystems.VisionSubsystem;
 
 import java.io.File;
+import java.util.List;
+
 import swervelib.SwerveInputStream;
 
 /**
@@ -63,6 +68,11 @@ public class RobotContainer
   private final AlgaePivot algaePivot = new AlgaePivot();
   private final AlgaeIntake algaeIntake = new AlgaeIntake();
   private final SendableChooser<Command> autoChooser;
+
+  public Command C_L4() {
+    return elevator.setElevatorStateCommand(CoralStates.C_L4).
+      alongWith(Commands.waitUntil(elevator.atHeight(50, 0)).andThen(arm.setArmPivotStateCommand(CoralStates.C_L4)));
+  }
 
   /**
    * Converts driver input into a field-relative ChassisSpeeds that is controlled by angular velocity.
@@ -128,12 +138,16 @@ public class RobotContainer
         .withInterruptBehavior(Command.InterruptionBehavior.kCancelIncoming).ignoringDisable(true);
   }
 
+  Pose2d[] SELECTED_AUTO_PREP_MAP;
+  String SELECTED_AUTO_PREP_MAP_NAME = "none"; // For logging :p
+  int AUTO_PREP_NUM = 0;
+
   /**
    * The container for the robot. Contains subsystems, OI devices, and commands.
    */
   public RobotContainer()
   {
-    registerNamedCommands();
+    configureAutoBindings();
     autoChooser = AutoBuilder.buildAutoChooser();
 
     // Configure the trigger bindings
@@ -156,7 +170,7 @@ public class RobotContainer
    */
   private void configureBindings()
   {
-    Trigger wristGreaterThan80DegreesTrigger = new Trigger(() -> {
+    Trigger wristGreaterThan59DegreesTrigger = new Trigger(() -> {
       if (arm.getWristEncoderPos() > 59) {
         return true;
       }
@@ -175,7 +189,7 @@ public class RobotContainer
     });
 
     YAxisJoystickTrigger
-      .onTrue(arm.setManualArmVoltageWithLimiter(() -> MathUtil.applyDeadband(-driverPartnerXbox.getLeftY(), 0.01), 
+      .onTrue(arm.setManualArmVoltage(() -> MathUtil.applyDeadband(-driverPartnerXbox.getLeftY(), 0.01), 
                                                  () -> MathUtil.applyDeadband(-driverPartnerXbox.getRightY(), 0.01)))
       .onFalse(arm.stopWholeArm());
 
@@ -188,9 +202,13 @@ public class RobotContainer
     drivebase.setDefaultCommand(
       new DriveManual(
         drivebase, () -> driverXbox.getLeftX(), () -> driverXbox.getLeftY(), 
-        () -> driverXbox.getRightX(), () -> driverXbox.rightTrigger(0.01).getAsBoolean(), 
-        () -> driverXbox.leftBumper().getAsBoolean(), () -> driverXbox.rightBumper().getAsBoolean(),
-        () -> driverXbox.a().getAsBoolean()));
+        () -> driverXbox.getRightX(), () -> driverXbox.rightBumper().getAsBoolean(), 
+        () -> driverXbox.leftTrigger(0.01).getAsBoolean(), 
+        () -> driverXbox.rightTrigger(0.01).getAsBoolean(),
+        () -> driverXbox.a().getAsBoolean(),
+        () -> driverXbox.b().getAsBoolean(),
+        () -> driverXbox.leftBumper().getAsBoolean(),
+        () -> driverXbox.povUp().getAsBoolean()));
     
 /* 
     driverXbox
@@ -377,7 +395,8 @@ public class RobotContainer
    */
   public Command getAutonomousCommand()
   {
-    // An example command will be run in autonomous
+    AUTO_PREP_NUM = 0;
+    selectAutoMap();
     return autoChooser.getSelected();
   }
 
@@ -386,7 +405,7 @@ public class RobotContainer
     drivebase.setMotorBrake(brake);
   }
 
-  public void registerNamedCommands() {
+  public void configureAutoBindings() {
     NamedCommands.registerCommand("C_LOAD", new SetCoralState(arm, elevator, CoralStates.C_LOAD));
     NamedCommands.registerCommand("C_L1", new SetCoralState(arm, elevator, CoralStates.C_L1));
     NamedCommands.registerCommand("C_L2", new SetCoralState(arm, elevator, CoralStates.C_L2));
@@ -396,5 +415,55 @@ public class RobotContainer
     NamedCommands.registerCommand("C_INTAKE", coralIntake.intakeCoral());
     NamedCommands.registerCommand("C_OUTTAKE", coralIntake.outtakeCoral());
     NamedCommands.registerCommand("C_STOPINTAKE", coralIntake.stopIntake());
+  }
+
+  /**
+   * Populates the selected AutoMap for your autonomous command.
+   */
+  private void selectAutoMap() {
+    SELECTED_AUTO_PREP_MAP = configureAutoPrepMaps(autoChooser.getSelected().getName());
+    SELECTED_AUTO_PREP_MAP_NAME = autoChooser.getSelected().getName();
+  }
+
+  private Pose2d[] configureAutoPrepMaps(String selectedAuto) {
+    List<Pose2d> fieldPositions = constField.getReefPositions().get();
+
+    switch (selectedAuto) {
+      case "Middle L4 Auto":
+        Pose2d[] middleL4Auto = new Pose2d[1];
+        middleL4Auto[0] = fieldPositions.get(0); // L
+        return middleL4Auto;
+      /* 
+      case "Four_Piece_High_Double_Tickle":
+        Pair<RobotState, Pose2d>[] fourPieceHighDoubleTickle = new Pair[4];
+        fourPieceHighDoubleTickle[0] = new Pair<RobotState, Pose2d>(AUTO_PREP_CORAL_4, fieldPositions.get(11)); // L
+        fourPieceHighDoubleTickle[1] = new Pair<RobotState, Pose2d>(AUTO_PREP_CORAL_4, fieldPositions.get(10)); // K
+        fourPieceHighDoubleTickle[2] = new Pair<RobotState, Pose2d>(AUTO_PREP_CORAL_4, fieldPositions.get(0)); // A
+        fourPieceHighDoubleTickle[3] = new Pair<RobotState, Pose2d>(AUTO_PREP_CORAL_4, fieldPositions.get(9)); // J
+        return fourPieceHighDoubleTickle;
+      case "Four_Piece_Low":
+        Pair<RobotState, Pose2d>[] fourPieceLow = new Pair[4];
+        fourPieceLow[0] = new Pair<RobotState, Pose2d>(AUTO_PREP_CORAL_4, fieldPositions.get(2)); // C
+        fourPieceLow[1] = new Pair<RobotState, Pose2d>(AUTO_PREP_CORAL_4, fieldPositions.get(3)); // D
+        fourPieceLow[2] = new Pair<RobotState, Pose2d>(AUTO_PREP_CORAL_4, fieldPositions.get(4)); // E
+        fourPieceLow[3] = new Pair<RobotState, Pose2d>(AUTO_PREP_CORAL_4, fieldPositions.get(5)); // F
+        return fourPieceLow;
+      case "Four_Piece_High_Single_Tickle":
+        Pair<RobotState, Pose2d>[] fourPieceHighSingleTickle = new Pair[4];
+        fourPieceHighSingleTickle[0] = new Pair<RobotState, Pose2d>(AUTO_PREP_CORAL_4, fieldPositions.get(11)); // L
+        fourPieceHighSingleTickle[1] = new Pair<RobotState, Pose2d>(AUTO_PREP_CORAL_4, fieldPositions.get(10)); // K
+        fourPieceHighSingleTickle[2] = new Pair<RobotState, Pose2d>(AUTO_PREP_CORAL_4, fieldPositions.get(0)); // A
+        fourPieceHighSingleTickle[3] = new Pair<RobotState, Pose2d>(AUTO_PREP_CORAL_4, fieldPositions.get(9)); // J
+        return fourPieceHighSingleTickle;
+      case "Algae_Net":
+        Pair<RobotState, Pose2d>[] algaeNet = new Pair[1];
+        algaeNet[0] = new Pair<RobotState, Pose2d>(AUTO_PREP_CORAL_4, fieldPositions.get(6)); // G
+        return algaeNet;
+        */
+      default:
+        Pose2d[] noAutoSelected = new Pose2d[1];
+        noAutoSelected[0] = new Pose2d();
+        return noAutoSelected;
+    }
   }
 }

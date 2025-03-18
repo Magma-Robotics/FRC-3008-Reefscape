@@ -6,7 +6,10 @@ import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
 
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.units.Units;
+import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Distance;
+import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants;
@@ -17,14 +20,15 @@ import swervelib.SwerveInputStream;
 public class DriveManual extends Command {
     SwerveSubsystem drive;
     DoubleSupplier xAxis, yAxis, rotationAxis;
-    BooleanSupplier slowMode, leftReef, rightReef, leftCoralStationNear, rightCoralStationNear, leftCoralStationFar,
-    rightCoralStationFar, resetPoseWithLimelight;
+    BooleanSupplier slowMode, leftReef, rightReef, coralStationLeft, coralStationRight, processor, resetPoseWithLimelight;
     double slowMultiplier = 0;
-    SwerveInputStream driveAngularVelocity;
+    SwerveInputStream chassisSpeeds;
     boolean reefDebounce = false;
 
     public DriveManual(SwerveSubsystem drive, DoubleSupplier xAxis, DoubleSupplier yAxis, 
-            DoubleSupplier rotationAxis, BooleanSupplier slowMode, BooleanSupplier leftReef, BooleanSupplier rightReef, BooleanSupplier resetPoseWithLimelight) {
+            DoubleSupplier rotationAxis, BooleanSupplier slowMode, BooleanSupplier leftReef, BooleanSupplier rightReef, 
+            BooleanSupplier coralStationLeft, BooleanSupplier coralStationRight,
+            BooleanSupplier processorBtnBooleanSupplier, BooleanSupplier resetPoseWithLimelight) {
         this.drive = drive;
         this.xAxis = xAxis;
         this.yAxis = yAxis;
@@ -32,6 +36,9 @@ public class DriveManual extends Command {
         this.slowMode = slowMode;
         this.leftReef = leftReef;
         this.rightReef = rightReef;
+        this.coralStationLeft = coralStationLeft;
+        this.coralStationRight = coralStationRight;
+        this.processor = processorBtnBooleanSupplier;
         this.resetPoseWithLimelight = resetPoseWithLimelight;
 
         addRequirements(this.drive);
@@ -51,35 +58,73 @@ public class DriveManual extends Command {
             slowMultiplier = 1;
         }
 
-        driveAngularVelocity = SwerveInputStream.of(drive.getSwerveDrive(),
-                                                                () -> yAxis.getAsDouble() * slowMultiplier,
-                                                                () -> xAxis.getAsDouble() * slowMultiplier)
-                                                            .withControllerRotationAxis(() -> -rotationAxis.getAsDouble() * slowMultiplier)
+        double elevatorHeightMultiplier = 1;
+
+        double transMultiplier = slowMultiplier * elevatorHeightMultiplier;
+
+        chassisSpeeds = SwerveInputStream.of(drive.getSwerveDrive(),
+                                                                () -> yAxis.getAsDouble() * transMultiplier,
+                                                                () -> xAxis.getAsDouble() * transMultiplier)
+                                                            .withControllerRotationAxis(() -> -rotationAxis.getAsDouble() * transMultiplier)
                                                             .deadband(OperatorConstants.DEADBAND)
                                                             .scaleTranslation(1)
                                                             .allianceRelativeControl(true);
 
-        /*if (leftReef.getAsBoolean() || rightReef.getAsBoolean()) {
+         // -- Velocities --
+        LinearVelocity xVelocity = Units.MetersPerSecond.of(chassisSpeeds.get().vxMetersPerSecond);
+        LinearVelocity yVelocity = Units.MetersPerSecond.of(chassisSpeeds.get().vyMetersPerSecond);
+        AngularVelocity rVelocity = Units.RadiansPerSecond
+            .of(chassisSpeeds.get().omegaRadiansPerSecond);
+
+        // -- Reef --
+        if (leftReef.getAsBoolean() || rightReef.getAsBoolean()) {
             Pose2d desiredReef = drive.getDesiredReef(leftReef.getAsBoolean());
             Distance reefDistance = Meters.of(drive.getPose().getTranslation().getDistance(desiredReef.getTranslation()));
 
-            if (!reefDistance.gte(Constants.Drive.MAX_AUTO_DRIVE_REEF_DISTANCE)) {
-                drive.driveToPose(desiredReef);
-            }
-            SmartDashboard.putNumber("Desired Reef X", desiredReef.getX());
-            SmartDashboard.putNumber("Desired Reef Distance", reefDistance.baseUnitMagnitude());
-            drive.driveToPose(desiredReef).execute();
-        }*/
+            drive.autoAlign(reefDistance, desiredReef, xVelocity, yVelocity, rVelocity, 
+                transMultiplier, 
+                Constants.Drive.TELEOP_AUTO_ALIGN.MAX_AUTO_DRIVE_REEF_DISTANCE);
+        }
+
+        // -- Coral Station --
+        else if (coralStationRight.getAsBoolean()) {
+            Pose2d desiredCoralStation = Constants.constField.getCoralStationPositions().get().get(0);
+            Distance coralStationDistance = Units.Meters
+                .of(drive.getPose().getTranslation().getDistance(desiredCoralStation.getTranslation()));
+
+            drive.rotationalAutoAlign(coralStationDistance, desiredCoralStation, xVelocity, yVelocity, rVelocity,
+                transMultiplier,
+                Constants.Drive.TELEOP_AUTO_ALIGN.MAX_AUTO_DRIVE_CORAL_STATION_DISTANCE);
+        }
+
+        else if (coralStationLeft.getAsBoolean()) {
+            Pose2d desiredCoralStation = Constants.constField.getCoralStationPositions().get().get(2);
+            Distance coralStationDistance = Units.Meters
+                .of(drive.getPose().getTranslation().getDistance(desiredCoralStation.getTranslation()));
+
+            drive.rotationalAutoAlign(coralStationDistance, desiredCoralStation, xVelocity, yVelocity, rVelocity,
+                transMultiplier,
+                Constants.Drive.TELEOP_AUTO_ALIGN.MAX_AUTO_DRIVE_CORAL_STATION_DISTANCE);
+        }
+
+        // -- Processors --
+        else if (processor.getAsBoolean()) {
+            Pose2d desiredProcessor = drive.getDesiredProcessor();
+            Distance processorDistance = Units.Meters
+                .of(drive.getPose().getTranslation().getDistance(desiredProcessor.getTranslation()));
+    
+                drive.rotationalAutoAlign(processorDistance, desiredProcessor, xVelocity, yVelocity, rVelocity,
+                transMultiplier,
+                Constants.Drive.TELEOP_AUTO_ALIGN.MAX_AUTO_DRIVE_CORAL_STATION_DISTANCE);
+        }
 
         if (resetPoseWithLimelight.getAsBoolean()) {
             drive.resetPoseWithAprilTag();
         }
 
         else {
-            drive.driveFieldOriented(driveAngularVelocity).execute();
+            drive.driveFieldOriented(chassisSpeeds).execute();
         }
-
-        SmartDashboard.putBoolean("leftReef", leftReef.getAsBoolean());
     }
     
     @Override

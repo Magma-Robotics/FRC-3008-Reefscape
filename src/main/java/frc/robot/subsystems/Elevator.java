@@ -207,6 +207,40 @@ public class Elevator extends SubsystemBase {
         }
     }
 
+    public Command setElevatorStateCommand(Constants.RobotStates.CoralStates state) {
+        return runOnce(() -> {
+            switch(state) {
+                case C_STOW:
+                    reachElevatorTarget(Constants.Elevator.C_STOW_POS);
+                    break;
+                
+                case C_L1:
+                    reachElevatorTarget(Constants.Elevator.C_L1_POS);
+                    break;
+                
+                case C_L2:
+                    reachElevatorTarget(Constants.Elevator.C_L2_POS);
+                    break;
+                
+                case C_L3:
+                    reachElevatorTarget(Constants.Elevator.C_L3_POS);
+                    break;
+    
+                case C_L4:
+                    reachElevatorTarget(Constants.Elevator.C_L4_POS);
+                    break;
+                    
+                case C_LOAD:
+                    reachElevatorTarget(Constants.Elevator.C_LOADING_POS);
+                    break;
+    
+                case C_GROUND:
+                    reachElevatorTarget(Constants.Elevator.C_GROUND_POS);
+                    break;
+            }
+        });
+    }
+
     /**
    * Runs the SysId routine to tune the Arm
    *
