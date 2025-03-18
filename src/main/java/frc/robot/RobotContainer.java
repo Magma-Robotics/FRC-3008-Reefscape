@@ -40,6 +40,10 @@ import frc.robot.subsystems.Hang;
 import frc.robot.subsystems.SwerveSubsystem;
 import frc.robot.subsystems.VisionSubsystem;
 
+import static edu.wpi.first.units.Units.DegreesPerSecond;
+import static edu.wpi.first.units.Units.Meters;
+import static edu.wpi.first.units.Units.MetersPerSecond;
+
 import java.io.File;
 import java.util.List;
 
@@ -69,9 +73,31 @@ public class RobotContainer
   private final AlgaeIntake algaeIntake = new AlgaeIntake();
   private final SendableChooser<Command> autoChooser;
 
+  /*public Command C_L1() {
+    return elevator.setElevatorStateCommand(CoralStates.C_L1).
+      alongWith(Commands.waitUntil(elevator.atHeight(0, 5)).andThen(arm.setArmPivotStateCommand(CoralStates.C_L1)));
+  }*/
+
+  public Command C_L2() {
+    return elevator.setElevatorStateCommand(CoralStates.C_L2).
+      alongWith(Commands.waitUntil(elevator.atHeight(12, 5))).andThen(arm.setArmPivotStateCommand(CoralStates.C_L2));
+  }
+
+  public Command C_L3() {
+    return elevator.setElevatorStateCommand(CoralStates.C_L3).
+      alongWith(Commands.waitUntil(elevator.atHeight(34, 10)).andThen(arm.setArmPivotStateCommand(CoralStates.C_L3)));
+  }
+
   public Command C_L4() {
     return elevator.setElevatorStateCommand(CoralStates.C_L4).
-      alongWith(Commands.waitUntil(elevator.atHeight(50, 0)).andThen(arm.setArmPivotStateCommand(CoralStates.C_L4)));
+      alongWith(Commands.waitUntil(elevator.atHeight(66, 10)).andThen(arm.setArmPivotStateCommand(CoralStates.C_L4)));
+  }
+
+  public Command C_LOAD() {
+    return arm.setArmPivotStateCommand(CoralStates.C_LOAD).
+      alongWith(Commands.waitUntil(() -> arm.atArmAngle(Constants.Arm.C_LOADING_ANGLE, 3).getAsBoolean() 
+      && arm.atWristAngle(Constants.Wrist.C_LOADING_ANGLE, 3).getAsBoolean())).
+      andThen(elevator.setElevatorStateCommand(CoralStates.C_LOAD));
   }
 
   /**
@@ -170,13 +196,6 @@ public class RobotContainer
    */
   private void configureBindings()
   {
-    Trigger wristGreaterThan59DegreesTrigger = new Trigger(() -> {
-      if (arm.getWristEncoderPos() > 59) {
-        return true;
-      }
-      return false;
-    });
-
     Trigger YAxisJoystickTrigger = new Trigger(() -> {
       if (MathUtil.applyDeadband(driverPartnerXbox.getLeftY(), 0.01) > 0.01|| 
           MathUtil.applyDeadband(driverPartnerXbox.getLeftY(), 0.01) < -0.01 ||
@@ -281,16 +300,12 @@ public class RobotContainer
       );*/
 
     driverPartnerXbox
-      .rightStick()
-      .onTrue(new SetCoralState(arm, elevator, CoralStates.C_GROUND));
-
-    driverPartnerXbox
       .povLeft()
       .onTrue(new SetCoralState(arm, elevator, CoralStates.C_LOAD));
 
     driverPartnerXbox
       .povRight()
-      .onTrue(new SetCoralState(arm, elevator, CoralStates.C_STOW));
+      .onTrue(new SetCoralState(arm, elevator, CoralStates.C_GROUND));
 
     driverPartnerXbox
       .a()
@@ -406,6 +421,13 @@ public class RobotContainer
   }
 
   public void configureAutoBindings() {
+    Command driveAutoAlign = Commands.runOnce(() -> drivebase.autoAlign(
+      Meters.of(drivebase.getPose().getTranslation().getDistance(SELECTED_AUTO_PREP_MAP[AUTO_PREP_NUM].getTranslation())), 
+      SELECTED_AUTO_PREP_MAP[AUTO_PREP_NUM],
+      MetersPerSecond.of(0), MetersPerSecond.of(0), 
+      DegreesPerSecond.of(0), 1, Meters.of(40)));
+
+
     NamedCommands.registerCommand("C_LOAD", new SetCoralState(arm, elevator, CoralStates.C_LOAD));
     NamedCommands.registerCommand("C_L1", new SetCoralState(arm, elevator, CoralStates.C_L1));
     NamedCommands.registerCommand("C_L2", new SetCoralState(arm, elevator, CoralStates.C_L2));
@@ -431,7 +453,7 @@ public class RobotContainer
     switch (selectedAuto) {
       case "Middle L4 Auto":
         Pose2d[] middleL4Auto = new Pose2d[1];
-        middleL4Auto[0] = fieldPositions.get(0); // L
+        middleL4Auto[0] = fieldPositions.get(6); // G
         return middleL4Auto;
       /* 
       case "Four_Piece_High_Double_Tickle":

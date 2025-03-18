@@ -18,12 +18,14 @@ import com.revrobotics.spark.config.SparkMaxConfig;
 import com.revrobotics.spark.config.ClosedLoopConfig.FeedbackSensor;
 import com.revrobotics.spark.config.MAXMotionConfig.MAXMotionPositionMode;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants;
 import frc.robot.Constants.Wrist;
 import frc.robot.Constants.RobotStates.CoralStates;
@@ -102,6 +104,14 @@ public class Arm extends SubsystemBase {
 
         SmartDashboard.putNumber("ArmAngleSetpoint", armAngleSetPoint);
         SmartDashboard.putNumber("WristAngleSetpoint", wristAngleSetPoint);
+    }
+
+    public Trigger atArmAngle(double angle, double tolerance) {
+        return new Trigger(() -> MathUtil.isNear(angle, armPivotEncoder.getPosition(), tolerance));
+    }
+
+    public Trigger atWristAngle(double angle, double tolerance) {
+        return new Trigger(() -> MathUtil.isNear(angle, wristEncoder.getPosition(), tolerance));
     }
 
     public void reachArmPivotTarget(double target) {

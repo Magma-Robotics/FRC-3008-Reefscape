@@ -257,30 +257,6 @@ public class SwerveSubsystem extends SubsystemBase
     PathfindingCommand.warmupCommand().schedule();
   }
 
-//  /**
-//   * Aim the robot at the target returned by PhotonVision.
-//   *
-//   * @return A {@link Command} which will run the alignment.
-//   */
-//  public Command aimAtTarget(Cameras camera)
-//  {
-//
-//    return run(() -> {
-//      Optional<PhotonPipelineResult> resultO = camera.getBestResult();
-//      if (resultO.isPresent())
-//      {
-//        var result = resultO.get();
-//        if (result.hasTargets())
-//        {
-//          drive(getTargetSpeeds(0,
-//                                0,
-//                                Rotation2d.fromDegrees(result.getBestTarget()
-//                                                             .getYaw()))); // Not sure if this will work, more math may be required.
-//        }
-//      }
-//    });
-//  }
-
   /**
    * Get the path follower with events.
    *
@@ -719,20 +695,6 @@ public class SwerveSubsystem extends SubsystemBase
   {
     return run(() -> {
       swerveDrive.driveFieldOriented(velocity.get());
-    });
-  }
-
-  
-  public Command driveFieldOriented(Supplier<ChassisSpeeds> velocity, BooleanSupplier slowMode)
-  {
-    //slow mode
-    ChassisSpeeds slowerVelocity = new ChassisSpeeds(velocity.get().vxMetersPerSecond/2, velocity.get().vyMetersPerSecond/2, velocity.get().omegaRadiansPerSecond/2);
-    return run(() -> {
-      if (slowMode.getAsBoolean()) {
-        swerveDrive.driveFieldOriented(slowerVelocity);
-      } else {
-        swerveDrive.driveFieldOriented(velocity.get());
-      }
     });
   }
 
