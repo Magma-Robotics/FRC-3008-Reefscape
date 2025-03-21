@@ -53,15 +53,21 @@
           }
         },
         {
-          "type": "path",
-          "data": {
-            "pathName": "LeftAuto3A - Drive Away Reef"
-          }
-        },
-        {
           "type": "named",
           "data": {
             "name": "C_LOAD"
+          }
+        },
+        {
+          "type": "wait",
+          "data": {
+            "waitTime": 2.0
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "LeftAuto3A - Drive Away Reef"
           }
         }
       ]

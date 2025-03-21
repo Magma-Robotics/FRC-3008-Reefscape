@@ -11,6 +11,7 @@ import edu.wpi.first.math.Pair;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.RobotBase;
@@ -27,6 +28,7 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.Constants.constField;
 import frc.robot.Constants.RobotStates.CoralStates;
+import frc.robot.LimelightHelpers.PoseEstimate;
 import frc.robot.commands.AddVisionMeasurement;
 import frc.robot.commands.DriveManual;
 import frc.robot.commands.SetCoralState;
@@ -43,6 +45,8 @@ import frc.robot.subsystems.VisionSubsystem;
 import static edu.wpi.first.units.Units.DegreesPerSecond;
 import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.MetersPerSecond;
+import static edu.wpi.first.units.Units.Radian;
+import static edu.wpi.first.units.Units.RadiansPerSecond;
 
 import java.io.File;
 import java.util.List;
@@ -72,6 +76,7 @@ public class RobotContainer
   private final AlgaePivot algaePivot = new AlgaePivot();
   private final AlgaeIntake algaeIntake = new AlgaeIntake();
   private final SendableChooser<Command> autoChooser;
+  private double slowMultiplier = 1;
 
   /*public Command C_L1() {
     return elevator.setElevatorStateCommand(CoralStates.C_L1).
@@ -80,35 +85,38 @@ public class RobotContainer
 
   public Command C_L2() {
     return elevator.setElevatorStateCommand(CoralStates.C_L2).
-      alongWith(Commands.waitUntil(elevator.atHeight(12, 5))).andThen(arm.setArmPivotStateCommand(CoralStates.C_L2));
+      alongWith(Commands.waitUntil(elevator.atHeight(Constants.Elevator.C_L2_POS, 5)).andThen(arm.setArmPivotStateCommand(CoralStates.C_L2)))
+      .withTimeout(4);
   }
 
   public Command C_L3() {
     return elevator.setElevatorStateCommand(CoralStates.C_L3).
-      alongWith(Commands.waitUntil(elevator.atHeight(34, 10)).andThen(arm.setArmPivotStateCommand(CoralStates.C_L3)));
+      alongWith(Commands.waitUntil(elevator.atHeight(Constants.Elevator.C_L3_POS, 10)).andThen(arm.setArmPivotStateCommand(CoralStates.C_L3)))
+      .withTimeout(4);
   }
 
   public Command C_L4() {
     return elevator.setElevatorStateCommand(CoralStates.C_L4).
-      alongWith(Commands.waitUntil(elevator.atHeight(66, 10)).andThen(arm.setArmPivotStateCommand(CoralStates.C_L4)));
+      alongWith(Commands.waitUntil(elevator.atHeight(Constants.Elevator.C_L4_POS, 10)).andThen(arm.setArmPivotStateCommand(CoralStates.C_L4)))
+      .withTimeout(4);
   }
 
   public Command C_LOAD() {
     return arm.setArmPivotStateCommand(CoralStates.C_LOAD).
-      alongWith(Commands.waitUntil(() -> arm.atArmAngle(Constants.Arm.C_LOADING_ANGLE, 3).getAsBoolean() 
-      && arm.atWristAngle(Constants.Wrist.C_LOADING_ANGLE, 3).getAsBoolean())).
-      andThen(elevator.setElevatorStateCommand(CoralStates.C_LOAD));
+      alongWith(Commands.waitUntil(arm.atArmAngle(Constants.Arm.C_LOADING_ANGLE, 3)).
+      andThen(elevator.setElevatorStateCommand(CoralStates.C_LOAD)))
+      .withTimeout(4);
   }
 
   /**
    * Converts driver input into a field-relative ChassisSpeeds that is controlled by angular velocity.
    */
   SwerveInputStream driveAngularVelocity = SwerveInputStream.of(drivebase.getSwerveDrive(),
-                                                                () -> driverXbox.getLeftY() * 1,
-                                                                () -> driverXbox.getLeftX() * 1)
+                                                                () -> driverXbox.getLeftY() * slowMultiplier,
+                                                                () -> driverXbox.getLeftX() * slowMultiplier)
                                                             .withControllerRotationAxis(() -> -driverXbox.getRightX())
                                                             .deadband(OperatorConstants.DEADBAND)
-                                                            .scaleTranslation(0.8)
+                                                            .scaleTranslation(1)
                                                             .allianceRelativeControl(true);
 
   /**
@@ -164,6 +172,14 @@ public class RobotContainer
         .withInterruptBehavior(Command.InterruptionBehavior.kCancelIncoming).ignoringDisable(true);
   }
 
+  public void resetOdometry(Pose2d pose) {
+    drivebase.resetOdometry(pose);
+  }
+
+  public LimelightHelpers.PoseEstimate getVisionEstimate() {
+    return visionSubsystem.GetVisionEstimate();
+  }
+
   Pose2d[] SELECTED_AUTO_PREP_MAP;
   String SELECTED_AUTO_PREP_MAP_NAME = "none"; // For logging :p
   int AUTO_PREP_NUM = 0;
@@ -184,7 +200,7 @@ public class RobotContainer
 
     SmartDashboard.putData(autoChooser);
 
-    drivebase.centerModulesCommand();
+    //drivebase.centerModulesCommand();
   }
 
   /**
@@ -218,7 +234,7 @@ public class RobotContainer
                                       () -> MathUtil.applyDeadband(-driverPartnerXbox.getRightY(), 0.01)))
       .onFalse(arm.stopWholeArm());
 */
-    drivebase.setDefaultCommand(
+    /*drivebase.setDefaultCommand(
       new DriveManual(
         drivebase, () -> driverXbox.getLeftX(), () -> driverXbox.getLeftY(), 
         () -> driverXbox.getRightX(), () -> driverXbox.rightBumper().getAsBoolean(), 
@@ -227,7 +243,8 @@ public class RobotContainer
         () -> driverXbox.a().getAsBoolean(),
         () -> driverXbox.b().getAsBoolean(),
         () -> driverXbox.leftBumper().getAsBoolean(),
-        () -> driverXbox.povUp().getAsBoolean()));
+        () -> driverXbox.povUp().getAsBoolean()));*/
+    drivebase.setDefaultCommand(driveFieldOrientedAnglularVelocity);
     
 /* 
     driverXbox
@@ -249,6 +266,69 @@ public class RobotContainer
       .onTrue(hang.hangUp())
       .onFalse(hang.stopHang());
 
+    Pose2d REEF_A = constField.getReefPositions().get().get(0);
+    Pose2d REEF_B = constField.getReefPositions().get().get(1);
+
+    driverXbox
+      .leftTrigger(0.01)
+      .whileTrue(Commands.deferredProxy(() -> drivebase.driveToReef(true)));
+
+    driverXbox
+      .rightTrigger(0.01)
+      .whileTrue(Commands.deferredProxy(() -> drivebase.driveToReef(false)));
+ 
+    /*driverXbox
+      .leftTrigger(0.01)
+      .whileTrue(Commands.deferredProxy(() -> drivebase.driveToReef(true))
+        .andThen(Commands.deferredProxy(() -> drivebase.alignToReef(true, MetersPerSecond.of(driveAngularVelocity.get().vxMetersPerSecond),
+          MetersPerSecond.of(driveAngularVelocity.get().vyMetersPerSecond), RadiansPerSecond.of(driveAngularVelocity.get().omegaRadiansPerSecond)))));
+
+    driverXbox
+      .rightTrigger(0.01)
+      .whileTrue(Commands.deferredProxy(() -> drivebase.driveToReef(false))
+      .andThen(Commands.deferredProxy(() -> drivebase.alignToReef(false, MetersPerSecond.of(driveAngularVelocity.get().vxMetersPerSecond),
+      MetersPerSecond.of(driveAngularVelocity.get().vyMetersPerSecond), RadiansPerSecond.of(driveAngularVelocity.get().omegaRadiansPerSecond)))));
+*/
+    /*driverXbox
+      .leftTrigger(0.01)
+      .whileTrue(Commands.deferredProxy(() -> drivebase.alignToReef(true, MetersPerSecond.of(driveAngularVelocity.get().vxMetersPerSecond),
+      MetersPerSecond.of(driveAngularVelocity.get().vyMetersPerSecond), RadiansPerSecond.of(driveAngularVelocity.get().omegaRadiansPerSecond))));
+
+    driverXbox
+      .rightTrigger(0.01)
+      .whileTrue(Commands.deferredProxy(() -> drivebase.alignToReef(false, MetersPerSecond.of(driveAngularVelocity.get().vxMetersPerSecond),
+      MetersPerSecond.of(driveAngularVelocity.get().vyMetersPerSecond), RadiansPerSecond.of(driveAngularVelocity.get().omegaRadiansPerSecond))));
+*/
+    driverXbox
+      .rightBumper()
+      .onTrue(Commands.run(() -> slowMultiplier = 0.5))
+      .onFalse(Commands.run(() -> slowMultiplier = 1));
+
+    driverXbox
+      .povUp()
+      .onTrue(Commands.runOnce(() -> drivebase.resetPoseWithAprilTag()));
+
+    /*driverXbox
+      .rightTrigger(0.01)
+      .onTrue(drivebase.driveToPose(REEF_B));
+
+    driverXbox
+      .leftTrigger(0.01)
+      .onTrue(drivebase.driveToPose(REEF_A));*/
+
+
+    /*driverXbox
+      .rightTrigger(0.01)
+      .onTrue(Commands.runOnce(() -> drivebase.autoAlign(Meters.of(drivebase.getPose().getTranslation().getDistance(REEF_B.getTranslation())),
+        REEF_B, MetersPerSecond.of(driveAngularVelocity.get().vxMetersPerSecond), MetersPerSecond.of(driveAngularVelocity.get().vyMetersPerSecond),
+        RadiansPerSecond.of(driveAngularVelocity.get().omegaRadiansPerSecond), 1.0, Constants.Drive.TELEOP_AUTO_ALIGN.MAX_AUTO_DRIVE_REEF_DISTANCE)));
+
+    driverXbox
+      .leftTrigger(0.01)
+      .onTrue(Commands.runOnce(() -> drivebase.autoAlign(Meters.of(drivebase.getPose().getTranslation().getDistance(REEF_A.getTranslation())),
+        REEF_A, MetersPerSecond.of(driveAngularVelocity.get().vxMetersPerSecond), MetersPerSecond.of(driveAngularVelocity.get().vyMetersPerSecond),
+        RadiansPerSecond.of(driveAngularVelocity.get().omegaRadiansPerSecond), 1.0, Constants.Drive.TELEOP_AUTO_ALIGN.MAX_AUTO_DRIVE_REEF_DISTANCE)));
+        */
     /*driverXbox
       .leftBumper()
       .onTrue(drivebase.driveToPose(drivebase.getDesiredReef(true)));
@@ -363,44 +443,6 @@ public class RobotContainer
       .a()
       .and(driverXbox.rightBumper())
       .whileTrue(drivebase.sysIdDriveMotorCommand());*/
-
-     
-    /* 
-    // (Condition) ? Return-On-True : Return-on-False
-    drivebase.setDefaultCommand(!RobotBase.isSimulation() ?
-                                driveFieldOrientedAnglularVelocity :
-                                driveFieldOrientedAnglularVelocitySim);
-
-    if (Robot.isSimulation())
-    {
-      driverXbox.start().onTrue(Commands.runOnce(() -> drivebase.resetOdometry(new Pose2d(3, 3, new Rotation2d()))));
-      driverXbox.button(1).whileTrue(drivebase.sysIdDriveMotorCommand());
-
-    }
-    if (DriverStation.isTest())
-    {
-      drivebase.setDefaultCommand(driveFieldOrientedAnglularVelocity); // Overrides drive command above!
-
-      driverXbox.x().whileTrue(Commands.runOnce(drivebase::lock, drivebase).repeatedly());
-      driverXbox.y().whileTrue(drivebase.driveToDistanceCommand(1.0, 0.2));
-      driverXbox.start().onTrue((Commands.runOnce(drivebase::zeroGyro)));
-      driverXbox.back().whileTrue(drivebase.centerModulesCommand());
-      driverXbox.leftBumper().onTrue(Commands.none());
-      driverXbox.rightBumper().onTrue(Commands.none());
-    } else
-    {
-      driverXbox.a().onTrue((Commands.runOnce(drivebase::zeroGyro)));
-      driverXbox.x().onTrue(Commands.runOnce(drivebase::addFakeVisionReading));
-      driverXbox.b().whileTrue(
-          drivebase.driveToPose(
-              new Pose2d(new Translation2d(4, 4), Rotation2d.fromDegrees(0)))
-                              );
-      driverXbox.start().whileTrue(Commands.none());
-      driverXbox.back().whileTrue(Commands.none());
-      driverXbox.leftBumper().whileTrue(Commands.runOnce(drivebase::lock, drivebase).repeatedly());
-      driverXbox.rightBumper().onTrue(Commands.none());
-    }
-*/
   }
 
   /**

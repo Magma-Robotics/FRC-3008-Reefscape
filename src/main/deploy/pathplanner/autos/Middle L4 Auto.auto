@@ -53,15 +53,21 @@
           }
         },
         {
-          "type": "path",
-          "data": {
-            "pathName": "MiddleAuto3 Drive Away Reef"
-          }
-        },
-        {
           "type": "named",
           "data": {
             "name": "C_LOAD"
+          }
+        },
+        {
+          "type": "wait",
+          "data": {
+            "waitTime": 1.5
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "MiddleAuto3 Drive Away Reef"
           }
         }
       ]

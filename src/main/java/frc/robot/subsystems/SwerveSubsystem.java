@@ -100,6 +100,9 @@ public class SwerveSubsystem extends SubsystemBase
   private Field2d field2d = new Field2d();
   Pose2d desiredAlignmentPose = Pose2d.kZero;
 
+  private Pose2d desiredLeftReef = Pose2d.kZero;
+  private Pose2d desiredRightReef = Pose2d.kZero;
+
   /**
    * Initialize {@link SwerveDrive} with the directory provided.
    *
@@ -164,21 +167,21 @@ public class SwerveSubsystem extends SubsystemBase
   @Override
   public void periodic()
   {
-    //Check to see if have been camera initalized
-    if(!b_IsPositionCameraInitalized){
-      //If here, robot position was not initalized by the camera yet
-      LimelightHelpers.PoseEstimate initEstimate = visionSubsystem.GetVisionEstimate();
-      if(initEstimate != null){ //Check if subsystem is givng actual values
-        //Reset swerve drive odometry to camera pose
-        resetOdometry(initEstimate.pose);
-        b_IsPositionCameraInitalized = true;
-      }
-    }
     SmartDashboard.putNumber("X Pos", getPose().getX());
     SmartDashboard.putNumber("Y Pos", getPose().getY());
     SmartDashboard.putNumber("Rotation", getPose().getRotation().getDegrees());
+    SmartDashboard.putNumber("DesiredLeftReef", getDesiredReef(true).getX());
+    SmartDashboard.putNumber("DesiredRightReef", getDesiredReef(false).getX());
     field2d.setRobotPose(getPose());
     SmartDashboard.putData("Field", field2d);
+  }
+
+  public Pose2d getDesiredLeftReef () {
+    return desiredLeftReef;
+  }
+  
+  public Pose2d getDesiredRightReef () {
+    return desiredRightReef;
   }
 
   @Override
@@ -452,15 +455,15 @@ public class SwerveSubsystem extends SubsystemBase
 
   public Command driveToReef(boolean leftBranchRequested) {
     Pose2d desiredReef = getDesiredReef(leftBranchRequested);
-    Distance reefDistance = Meters.of(getPose().getTranslation().getDistance(desiredReef.getTranslation()));
-
-    /*if (!reefDistance.gte(Constants.Drive.MAX_AUTO_DRIVE_REEF_DISTANCE)) {
-      return driveToPose(desiredReef);
-    }
-    else {
-      return Commands.none();
-    }*/
     return driveToPose(desiredReef);
+  }
+
+  public Command alignToReef(boolean leftBranchRequested, LinearVelocity xVelocity, LinearVelocity yVelocity, AngularVelocity rVelocity) {
+    Pose2d desiredReef = getDesiredReef(leftBranchRequested);
+    Distance reefDistance = Meters.of(getPose().getTranslation().getDistance(desiredReef.getTranslation()));
+    return run(() -> autoAlign(reefDistance, desiredReef, MetersPerSecond.of(0), 
+    MetersPerSecond.of(0), RadiansPerSecond.of(0), 
+    1, Constants.Drive.TELEOP_AUTO_ALIGN.MAX_AUTO_DRIVE_REEF_DISTANCE));
   }
 
   /**
@@ -473,7 +476,7 @@ public class SwerveSubsystem extends SubsystemBase
   {
 // Create the constraints to use while pathfinding
     PathConstraints constraints = new PathConstraints(
-        1/*swerveDrive.getMaximumChassisVelocity()*/, 1,
+        swerveDrive.getMaximumChassisVelocity(), 2,
         swerveDrive.getMaximumChassisAngularVelocity(), Units.Degrees.of(720).in(Radians));
 
 // Since AutoBuilder is configured, we can use it to build pathfinding commands

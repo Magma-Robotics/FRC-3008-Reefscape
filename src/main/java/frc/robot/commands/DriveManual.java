@@ -12,6 +12,7 @@ import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.Constants;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.subsystems.SwerveSubsystem;
@@ -78,12 +79,20 @@ public class DriveManual extends Command {
 
         // -- Reef --
         if (leftReef.getAsBoolean() || rightReef.getAsBoolean()) {
-            Pose2d desiredReef = drive.getDesiredReef(leftReef.getAsBoolean());
-            Distance reefDistance = Meters.of(drive.getPose().getTranslation().getDistance(desiredReef.getTranslation()));
+            //Pose2d desiredReef = drive.getDesiredReef(leftReef.getAsBoolean());
+            //Distance reefDistance = Meters.of(drive.getPose().getTranslation().getDistance(desiredReef.getTranslation()));
 
-            drive.autoAlign(reefDistance, desiredReef, xVelocity, yVelocity, rVelocity, 
+            /*Commands.deferredProxy(() -> Commands.run(() -> drive.autoAlign(reefDistance, desiredReef, xVelocity, yVelocity, rVelocity, 
                 transMultiplier, 
-                Constants.Drive.TELEOP_AUTO_ALIGN.MAX_AUTO_DRIVE_REEF_DISTANCE);
+                Constants.Drive.TELEOP_AUTO_ALIGN.MAX_AUTO_DRIVE_REEF_DISTANCE)));*/
+            //SmartDashboard.putNumber("DesiredReef", desiredReef.getX());
+            //Commands.deferredProxy(() -> drive.driveToPose(desiredReef)).execute();
+            
+            /*if (reefDebounce == false) {
+                reefDebounce = true;
+                drive.driveToPose(desiredReef).execute();
+            }*/
+            drive.driveToReef(leftReef.getAsBoolean());
         }
 
         // -- Coral Station --
@@ -123,6 +132,7 @@ public class DriveManual extends Command {
         }
 
         else {
+            reefDebounce = false;
             drive.driveFieldOriented(chassisSpeeds).execute();
         }
     }

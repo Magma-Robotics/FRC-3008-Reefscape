@@ -4,6 +4,7 @@ import java.util.Optional;
 
 import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.wpilibj.RobotState;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.LimelightHelpers;
 import frc.robot.LimelightHelpers.PoseEstimate;
@@ -36,7 +37,7 @@ public class AddVisionMeasurement extends Command {
         AngularVelocity gyroRate = Units.DegreesPerSecond.of(drive.getGyroRate());
 
         Optional<PoseEstimate> estimatedPose = visionSubsystem.determinePoseEstimate(gyroRate);
-        if (estimatedPose.isPresent()) {
+        if (estimatedPose.isPresent() && !RobotState.isAutonomous()) {
             drive.addVisionMeasurement(estimatedPose.get().pose, estimatedPose.get().timestampSeconds);
         }
     }

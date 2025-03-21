@@ -207,13 +207,13 @@ public final class Constants
       public static final Distance MAX_AUTO_DRIVE_PROCESSOR_DISTANCE = Units.Meters.of(3);
 
       public static final PIDController TRANS_CONTROLLER = new PIDController(
-          4,
+          1,
           0,
           0);
       public static final Distance AT_POINT_TOLERANCE = Units.Inches.of(0.5);
 
       public static final ProfiledPIDController ROTATION_CONTROLLER = new ProfiledPIDController(
-          3, 0, 0, new TrapezoidProfile.Constraints(TURN_SPEED.in(Units.DegreesPerSecond),
+          0.01, 0, 0, new TrapezoidProfile.Constraints(TURN_SPEED.in(Units.DegreesPerSecond),
               Math.pow(TURN_SPEED.in(Units.DegreesPerSecond), 2)));
       public static final Angle AT_ROTATION_TOLERANCE = Units.Degrees.of(1);
 
@@ -263,7 +263,20 @@ public final class Constants
       public static final Pose3d SCORING_ELEMENT_NOT_COLLECTED = new Pose3d(0, 0, -1, Rotation3d.kZero);
 
       // BRANCH POSES
-      public static final Pose2d REEF_A = new Pose2d(2.860, 4.187, Rotation2d.fromDegrees(0));
+      public static final Pose2d REEF_A = new Pose2d(2.930, 4.22, Rotation2d.fromDegrees(0));
+      public static final Pose2d REEF_B = new Pose2d(2.930, 3.89, Rotation2d.fromDegrees(0));
+      public static final Pose2d REEF_C = new Pose2d(3.5420, 2.7732, Rotation2d.fromDegrees(60));
+      public static final Pose2d REEF_D = new Pose2d(3.8278, 2.6082, Rotation2d.fromDegrees(60));
+      public static final Pose2d REEF_E = new Pose2d(5.1004, 2.5791, Rotation2d.fromDegrees(120));
+      public static final Pose2d REEF_F = new Pose2d(5.3862, 2.7441, Rotation2d.fromDegrees(120));
+      public static final Pose2d REEF_G = new Pose2d(6.0486, 3.8318, Rotation2d.fromDegrees(180));
+      public static final Pose2d REEF_H = new Pose2d(6.0486, 4.1618, Rotation2d.fromDegrees(180));
+      public static final Pose2d REEF_I = new Pose2d(5.4366, 5.2786, Rotation2d.fromDegrees(-120));
+      public static final Pose2d REEF_J = new Pose2d(5.1508, 5.4436, Rotation2d.fromDegrees(-120));
+      public static final Pose2d REEF_K = new Pose2d(3.8782, 5.4727, Rotation2d.fromDegrees(-60));
+      public static final Pose2d REEF_L = new Pose2d(3.5924, 5.3077, Rotation2d.fromDegrees(-60));
+
+      /*public static final Pose2d REEF_A = new Pose2d(2.860, 4.187, Rotation2d.fromDegrees(0));
       public static final Pose2d REEF_B = new Pose2d(2.860, 3.857, Rotation2d.fromDegrees(0));
       public static final Pose2d REEF_C = new Pose2d(3.527, 2.694, Rotation2d.fromDegrees(60));
       public static final Pose2d REEF_D = new Pose2d(3.813, 2.535, Rotation2d.fromDegrees(60));
@@ -275,6 +288,7 @@ public final class Constants
       public static final Pose2d REEF_J = new Pose2d(5.166, 5.527, Rotation2d.fromDegrees(-120));
       public static final Pose2d REEF_K = new Pose2d(3.826, 5.508, Rotation2d.fromDegrees(-60));
       public static final Pose2d REEF_L = new Pose2d(3.534, 5.368, Rotation2d.fromDegrees(-60));
+*/
 
       // CORAL STATION POSES
       public static final Pose2d LEFT_CORAL_STATION_FAR = new Pose2d(1.64, 7.33, Rotation2d.fromDegrees(125));
