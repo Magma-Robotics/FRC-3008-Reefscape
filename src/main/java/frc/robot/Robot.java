@@ -9,7 +9,6 @@ import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import frc.robot.subsystems.VisionSubsystem;
 
 /**
  * The VM is configured to automatically run this class, and to call the functions corresponding to each mode, as
@@ -143,7 +142,7 @@ public class Robot extends TimedRobot
   public void teleopPeriodic()
   {
     //Check to see if have been camera initalized
-    /*if(!b_IsPositionCameraInitalized){
+    if(!b_IsPositionCameraInitalized){
       //If here, robot position was not initalized by the camera yet
       LimelightHelpers.PoseEstimate initEstimate = m_robotContainer.getVisionEstimate();
       if(initEstimate != null){ //Check if subsystem is givng actual values
@@ -151,7 +150,7 @@ public class Robot extends TimedRobot
         m_robotContainer.resetOdometry(initEstimate.pose);
         b_IsPositionCameraInitalized = true;
       }
-    }*/
+    }
   }
 
   @Override

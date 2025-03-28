@@ -25,7 +25,7 @@
         {
           "type": "wait",
           "data": {
-            "waitTime": 2.0
+            "waitTime": 1.8
           }
         },
         {
@@ -43,13 +43,13 @@
         {
           "type": "wait",
           "data": {
-            "waitTime": 0.6
+            "waitTime": 0.5
           }
         },
         {
           "type": "named",
           "data": {
-            "name": "C_STOPINTAKE"
+            "name": "C_INTAKE"
           }
         },
         {
@@ -61,13 +61,25 @@
         {
           "type": "wait",
           "data": {
-            "waitTime": 2.0
+            "waitTime": 1.8
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "RightAuto3A - Drive Away Reef"
+            "pathName": "RightAuto3B - Drive Coral Station"
+          }
+        },
+        {
+          "type": "wait",
+          "data": {
+            "waitTime": 4.0
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "C_STOPINTAKE"
           }
         }
       ]

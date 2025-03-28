@@ -173,7 +173,7 @@ public class RobotContainer
   }
 
   public void resetOdometry(Pose2d pose) {
-    drivebase.resetOdometry(pose);
+    drivebase.resetOdometry(new Pose2d(pose.getTranslation(), drivebase.getPose().getRotation()));
   }
 
   public LimelightHelpers.PoseEstimate getVisionEstimate() {

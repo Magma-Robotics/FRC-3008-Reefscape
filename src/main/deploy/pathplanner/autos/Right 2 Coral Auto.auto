@@ -19,7 +19,13 @@
         {
           "type": "named",
           "data": {
-            "name": "C_L1"
+            "name": "C_L4"
+          }
+        },
+        {
+          "type": "wait",
+          "data": {
+            "waitTime": 1.8
           }
         },
         {
@@ -37,7 +43,7 @@
         {
           "type": "wait",
           "data": {
-            "waitTime": 0.6
+            "waitTime": 0.5
           }
         },
         {
@@ -47,22 +53,21 @@
           }
         },
         {
-          "type": "parallel",
+          "type": "named",
           "data": {
-            "commands": [
-              {
-                "type": "path",
-                "data": {
-                  "pathName": "RightAuto3B - Drive Coral Station"
-                }
-              },
-              {
-                "type": "named",
-                "data": {
-                  "name": "C_LOAD"
-                }
-              }
-            ]
+            "name": "C_LOAD"
+          }
+        },
+        {
+          "type": "wait",
+          "data": {
+            "waitTime": 1.8
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "RightAuto3B - Drive Coral Station"
           }
         },
         {
@@ -86,13 +91,7 @@
         {
           "type": "named",
           "data": {
-            "name": "C_L4"
-          }
-        },
-        {
-          "type": "wait",
-          "data": {
-            "waitTime": 1.8
+            "name": "C_L1"
           }
         },
         {
@@ -110,7 +109,7 @@
         {
           "type": "wait",
           "data": {
-            "waitTime": 0.6
+            "waitTime": 0.5
           }
         },
         {
@@ -120,15 +119,15 @@
           }
         },
         {
-          "type": "path",
-          "data": {
-            "pathName": "RightAuto6B - Drive Away Reef"
-          }
-        },
-        {
           "type": "named",
           "data": {
             "name": "C_LOAD"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "RightAuto6B - Drive Away Reef"
           }
         }
       ]

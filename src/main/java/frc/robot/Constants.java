@@ -118,7 +118,8 @@ public final class Constants
     public static final double kWristRPMtoDegPerSec = (360/(wristGearRatio*60));
 
     //configure
-    public static final double coralIntakeSpeed = 0.5;
+    public static final double coralIntakeSpeed = 1;
+    public static final double coralOuttakeSpeed = 0.4;
     public static final double maxWristVelocity = 11000;
     public static final double maxWristAcceleration = 4000;
     public static final double C_STOW_ANGLE = 0;
@@ -146,8 +147,8 @@ public final class Constants
     public static final double maxElevatorAcceleration = 30000;
     public static final double C_STOW_POS = 0;
     public static final double C_L1_POS = 0;
-    public static final double C_L2_POS = 12;
-    public static final double C_L3_POS = 34;
+    public static final double C_L2_POS = 13;
+    public static final double C_L3_POS = 35;
     public static final double C_L4_POS = 66;
     public static final double C_LOADING_POS = 0;
     public static final double C_GROUND_POS = 0;
@@ -160,7 +161,7 @@ public final class Constants
 
     //configure
     public static final double intakeSpeed = 1;
-    public static final double pivotSpeed = 0.6;
+    public static final double pivotSpeed = 0.4;
     public static final double maxAlgaePivotVelocity = 10;
     public static final double maxAlgaePivotAcceleration = 5;
     public static final double A_STOW_ANGLE = 0;

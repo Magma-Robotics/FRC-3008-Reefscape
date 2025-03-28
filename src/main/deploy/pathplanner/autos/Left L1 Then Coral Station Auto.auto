@@ -13,25 +13,19 @@
         {
           "type": "path",
           "data": {
-            "pathName": "RightAuto1 - Drive Near Reef"
+            "pathName": "LeftAuto1 - Drive Near Reef"
           }
         },
         {
           "type": "named",
           "data": {
-            "name": "C_L4"
-          }
-        },
-        {
-          "type": "wait",
-          "data": {
-            "waitTime": 2.0
+            "name": "C_L1"
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "RightAuto2 - Drive To Reef"
+            "pathName": "LeftAuto2 - Drive To Reef"
           }
         },
         {
@@ -43,13 +37,13 @@
         {
           "type": "wait",
           "data": {
-            "waitTime": 0.6
+            "waitTime": 0.5
           }
         },
         {
           "type": "named",
           "data": {
-            "name": "C_STOPINTAKE"
+            "name": "C_INTAKE"
           }
         },
         {
@@ -59,21 +53,27 @@
           }
         },
         {
-          "type": "wait",
+          "type": "path",
           "data": {
-            "waitTime": 2.0
+            "pathName": "LeftAuto3B - Drive Away Reef To Coral Station"
           }
         },
         {
-          "type": "path",
+          "type": "wait",
           "data": {
-            "pathName": "RightAuto3A - Drive Away Reef"
+            "waitTime": 4.0
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "C_STOPINTAKE"
           }
         }
       ]
     }
   },
   "resetOdom": true,
-  "folder": "Right Comp Autos",
+  "folder": "Left Comp Autos",
   "choreoAuto": false
 }

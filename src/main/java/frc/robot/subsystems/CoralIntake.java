@@ -37,7 +37,7 @@ public class CoralIntake extends SubsystemBase {
     }
 
     public Command outtakeCoral() {
-        return runOnce(() -> intake.set(-Constants.Wrist.coralIntakeSpeed));
+        return runOnce(() -> intake.set(-Constants.Wrist.coralOuttakeSpeed));
     }
 
     public Command stopIntake() {
