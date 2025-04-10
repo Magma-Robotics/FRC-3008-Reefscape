@@ -31,10 +31,8 @@ import frc.robot.Constants.RobotStates.CoralStates;
 import frc.robot.LimelightHelpers.PoseEstimate;
 import frc.robot.commands.AddVisionMeasurement;
 import frc.robot.commands.DriveManual;
+import frc.robot.commands.PathToCoral;
 import frc.robot.commands.SetCoralState;
-import frc.robot.commands.swervedrive.drivebase.AbsoluteDriveAdv;
-import frc.robot.subsystems.AlgaeIntake;
-import frc.robot.subsystems.AlgaePivot;
 import frc.robot.subsystems.Arm;
 import frc.robot.subsystems.CoralIntake;
 import frc.robot.subsystems.Elevator;
@@ -62,8 +60,9 @@ public class RobotContainer
 {
 
   // Replace with CommandPS4Controller or CommandJoystick if needed
-  final         CommandXboxController driverXbox = new CommandXboxController(0);
+  final CommandXboxController driverXbox = new CommandXboxController(0);
   final CommandXboxController driverPartnerXbox = new CommandXboxController(1);
+  final CommandXboxController testXbox = new CommandXboxController(3);
 
   // The robot's subsystems and commands are defined here...
   private final SwerveSubsystem       drivebase  = new SwerveSubsystem(new File(Filesystem.getDeployDirectory(),
@@ -73,8 +72,6 @@ public class RobotContainer
   private final Arm arm = new Arm();
   private final CoralIntake coralIntake = new CoralIntake();
   private final Hang hang = new Hang();
-  private final AlgaePivot algaePivot = new AlgaePivot();
-  private final AlgaeIntake algaeIntake = new AlgaeIntake();
   private final SendableChooser<Command> autoChooser;
   private double slowMultiplier = 1;
 
@@ -212,6 +209,19 @@ public class RobotContainer
    */
   private void configureBindings()
   {
+
+    testXbox
+      .povUp()
+      .whileTrue(elevator.runSysIdRoutine());
+
+    testXbox
+      .povLeft()
+      .whileTrue(arm.runWristSysIdRoutine());
+    
+    testXbox
+      .povDown()
+      .whileTrue(arm.runArmSysIdRoutine());
+
     Trigger YAxisJoystickTrigger = new Trigger(() -> {
       if (MathUtil.applyDeadband(driverPartnerXbox.getLeftY(), 0.01) > 0.01|| 
           MathUtil.applyDeadband(driverPartnerXbox.getLeftY(), 0.01) < -0.01 ||
@@ -224,8 +234,8 @@ public class RobotContainer
     });
 
     YAxisJoystickTrigger
-      .onTrue(arm.setManualArmVoltage(() -> MathUtil.applyDeadband(-driverPartnerXbox.getLeftY(), 0.01), 
-                                                 () -> MathUtil.applyDeadband(-driverPartnerXbox.getRightY(), 0.01)))
+      .onTrue(arm.setManualArm(() -> MathUtil.applyDeadband(-driverPartnerXbox.getLeftY(), 0.01), 
+                                      () -> MathUtil.applyDeadband(-driverPartnerXbox.getRightY(), 0.01)))
       .onFalse(arm.stopWholeArm());
 
       /* //if limiter is bugging out, then uncomment this and comment out the thing above this
@@ -266,16 +276,21 @@ public class RobotContainer
       .onTrue(hang.hangUp())
       .onFalse(hang.stopHang());
 
-    Pose2d REEF_A = constField.getReefPositions().get().get(0);
-    Pose2d REEF_B = constField.getReefPositions().get().get(1);
+    driverXbox
+      .leftTrigger(0.01)
+      .whileTrue(new PathToCoral(drivebase, drivebase.getDesiredReef(true)));
 
     driverXbox
+      .rightTrigger()
+      .whileTrue(new PathToCoral(drivebase, drivebase.getDesiredReef(false)));
+
+    /*driverXbox
       .leftTrigger(0.01)
       .whileTrue(Commands.deferredProxy(() -> drivebase.driveToReef(true)));
 
     driverXbox
       .rightTrigger(0.01)
-      .whileTrue(Commands.deferredProxy(() -> drivebase.driveToReef(false)));
+      .whileTrue(Commands.deferredProxy(() -> drivebase.driveToReef(false)));*/
  
     /*driverXbox
       .leftTrigger(0.01)
@@ -380,6 +395,10 @@ public class RobotContainer
       );*/
 
     driverPartnerXbox
+      .back()
+      .onTrue(new SetCoralState(arm, elevator, CoralStates.C_STOW));
+
+    driverPartnerXbox
       .povLeft()
       .onTrue(new SetCoralState(arm, elevator, CoralStates.C_LOAD));
 
@@ -410,29 +429,16 @@ public class RobotContainer
     
     driverPartnerXbox
       .rightBumper()
-      .onTrue(coralIntake.intakeCoral())
+      .onTrue(coralIntake.intakeCoral());
+
+    driverPartnerXbox
+      .leftTrigger()
+      .onTrue(coralIntake.slowOuttakeCoral())
       .onFalse(coralIntake.stopIntake());
-
+    
     driverPartnerXbox
-      .rightTrigger(0.01)
-      .onTrue(algaeIntake.intakeAlgae())
-      .onFalse(algaeIntake.stopAlgaeIntake());
-
-    driverPartnerXbox
-      .leftTrigger(0.01)
-      .onTrue(algaeIntake.outtakeAlgae())
-      .onFalse(algaeIntake.stopAlgaeIntake());
-
-    //algae positions
-    driverPartnerXbox
-      .back()
-      .onTrue(algaePivot.algaePivotUp())
-      .onFalse(algaePivot.stopAlgaePivot());
-
-    driverPartnerXbox
-      .start()
-      .onTrue(algaePivot.algaePivotDown())
-      .onFalse(algaePivot.stopAlgaePivot());
+      .rightTrigger()
+      .onTrue(coralIntake.stopIntake());
 
     //sys id tests on swerve drive
     /*driverXbox
@@ -470,6 +476,7 @@ public class RobotContainer
       DegreesPerSecond.of(0), 1, Meters.of(40)));
 
 
+    NamedCommands.registerCommand("C_STOW", new SetCoralState(arm, elevator, CoralStates.C_STOW));
     NamedCommands.registerCommand("C_LOAD", new SetCoralState(arm, elevator, CoralStates.C_LOAD));
     NamedCommands.registerCommand("C_L1", new SetCoralState(arm, elevator, CoralStates.C_L1));
     NamedCommands.registerCommand("C_L2", new SetCoralState(arm, elevator, CoralStates.C_L2));

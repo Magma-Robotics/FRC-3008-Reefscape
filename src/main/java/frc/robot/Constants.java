@@ -5,11 +5,13 @@
 package frc.robot;
 
 import static edu.wpi.first.units.Units.Centimeters;
+import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Feet;
 import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Meter;
 import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.MetersPerSecond;
+import static edu.wpi.first.units.Units.Radians;
 
 import java.util.List;
 import java.util.Optional;
@@ -48,7 +50,9 @@ public final class Constants
   public static final Matter CHASSIS    = new Matter(new Translation3d(0, 0, Units.Inches.of(8).in(Meters)), ROBOT_MASS);
   public static final double LOOP_TIME  = 0.13; //s, 20ms + 110ms sprk max velocity lag
   public static final double MAX_SPEED  = Units.Feet.of(12.66).in(Meters);
-  // Maximum speed of the robot in meters per second, used to limit acceleration.
+  public static final double MAX_ACCEL  = Units.Meters.of(1).in(Meters);
+  public static final double MAX_ANGV  = Units.Radians.of(4).in(Radians);
+  public static final double MAX_ANGA = Units.Radians.of(3).in(Radians);
 
 //  public static final class AutonConstants
 //  {
@@ -95,40 +99,48 @@ public final class Constants
 
   public static class Arm {
     //constants
-    public static final double armGearRatio = 300;
+    public static final double armGearRatio = 187.5;
     public static final double kArmRotationsToDeg = (1/armGearRatio)*360;
     public static final double kArmRPMtoDegPerSec = (360/(armGearRatio*60));
+    public static final Angle kMinAngle = Degrees.of(15);//0);
+    public static final Angle kMaxAngle = Degrees.of(155);//170);
+    //degree offset from horizontal angle
+    public static final double encoderOffset = 90;
 
     //configure
-    public static final double maxArmVelocity = 300000;
-    public static final double maxArmAcceleration = 60000;
-    public static final double C_STOW_ANGLE = 0;
-    public static final double C_L1_ANGLE = 35;
-    public static final double C_L2_ANGLE = 15;
-    public static final double C_L3_ANGLE = 20;
-    public static final double C_L4_ANGLE = 25;
-    public static final double C_LOADING_ANGLE = 10;
-    public static final double C_GROUND_ANGLE = 89;
+    public static final double maxArmVelocity = 180;//300000;
+    public static final double maxArmAcceleration = 360;//60000;
+    public static final double C_STOW_ANGLE = 90;
+    public static final double C_L1_ANGLE = 100;
+    public static final double C_L2_ANGLE = 95;
+    public static final double C_L3_ANGLE = 95;
+    public static final double C_L4_ANGLE = 86;
+    public static final double C_LOADING_ANGLE = 70;
+    public static final double C_GROUND_ANGLE = 170;
   }
 
   public static class Wrist {
     //constants
-    public static final double wristGearRatio = 72;
+    public static final double wristGearRatio = 100;
     public static final double kWristRotationsToDeg = (1/wristGearRatio)*360;
     public static final double kWristRPMtoDegPerSec = (360/(wristGearRatio*60));
+    public static final Angle kMinAngle = Degrees.of(15);//0);
+    public static final Angle kMaxAngle = Degrees.of(175);//190);
+    //degree offset from horizontal angle
+    public static final double encoderOffset = 90;
 
     //configure
     public static final double coralIntakeSpeed = 1;
-    public static final double coralOuttakeSpeed = 0.4;
-    public static final double maxWristVelocity = 11000;
-    public static final double maxWristAcceleration = 4000;
-    public static final double C_STOW_ANGLE = 0;
-    public static final double C_L1_ANGLE = 40;
-    public static final double C_L2_ANGLE = 75;
-    public static final double C_L3_ANGLE = 78;
-    public static final double C_L4_ANGLE = 75;
-    public static final double C_LOADING_ANGLE = 10;
-    public static final double C_GROUND_ANGLE = 70;
+    public static final double slowCoralIntakeSpeed = 0.4;
+    public static final double maxWristVelocity = 180;//11000;
+    public static final double maxWristAcceleration = 360;//4000;
+    public static final double C_STOW_ANGLE = 90;
+    public static final double C_L1_ANGLE = 177;
+    public static final double C_L2_ANGLE = 192;
+    public static final double C_L3_ANGLE = 192;
+    public static final double C_L4_ANGLE = 187;
+    public static final double C_LOADING_ANGLE = 61;
+    public static final double C_GROUND_ANGLE = 204;
   }
 
   public static class Elevator {
@@ -140,33 +152,18 @@ public final class Constants
     public static final double kElevatorRPMToInPerSec = kElevatorRotationsToInches/60;
     public static final Distance elevatorHeightOffGround = Inches.of(9);
     public static final Distance kMinElevatorHeight = Inches.of(0);
-    public static final Distance kMaxElevatorHeight = Inches.of(68);
-
+    public static final Distance kMaxElevatorHeight = Inches.of(66);
+  
     //configure
-    public static final double maxElevatorVelocity = 60000;
-    public static final double maxElevatorAcceleration = 30000;
+    public static final double maxElevatorVelocity = 200;//60000;
+    public static final double maxElevatorAcceleration = 200;//30000;
     public static final double C_STOW_POS = 0;
     public static final double C_L1_POS = 0;
-    public static final double C_L2_POS = 13;
-    public static final double C_L3_POS = 35;
-    public static final double C_L4_POS = 66;
-    public static final double C_LOADING_POS = 0;
+    public static final double C_L2_POS = 18;
+    public static final double C_L3_POS = 37;
+    public static final double C_L4_POS = 67;
+    public static final double C_LOADING_POS = 13;
     public static final double C_GROUND_POS = 0;
-  }
-
-  public static class Algae {
-    //constants
-    public static final double gearRatio = 75;
-    public static final double kAlgaePivotRotationsToDeg = (1/gearRatio)*360;
-
-    //configure
-    public static final double intakeSpeed = 1;
-    public static final double pivotSpeed = 0.4;
-    public static final double maxAlgaePivotVelocity = 10;
-    public static final double maxAlgaePivotAcceleration = 5;
-    public static final double A_STOW_ANGLE = 0;
-    public static final double A_PROCCESSOR_ANGLE = 0;
-    public static final double A_LOADING_ANGLE = 0;
   }
 
   public static class Hang {
@@ -186,13 +183,9 @@ public final class Constants
       C_L3,
       C_L4,
       C_LOAD,
-      C_GROUND;
-    }
-
-    public enum AlgaeStates {
-      A_STOW,
-      A_PROCCESSOR,
-      A_LOAD
+      C_GROUND,
+      C_BARGE,
+      C_PROCESSOR;
     }
   }
 

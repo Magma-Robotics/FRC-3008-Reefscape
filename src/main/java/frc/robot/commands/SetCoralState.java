@@ -26,51 +26,51 @@ public class SetCoralState extends Command {
     public void execute() {
         switch(state) {
             case C_STOW:
-                arm.setArmPivotState(state);
-                arm.setWristState(state);
-                elevator.setElevatorState(state);
+                arm.setArmSetpoint(state);
+                arm.setWristSetpoint(state);
+                elevator.setElevatorSetpoint(state);
                 break;
 
             case C_L1:
-                arm.setArmPivotState(state);
-                arm.setWristState(state);
-                elevator.setElevatorState(state);
+                arm.setArmSetpoint(state);
+                arm.setWristSetpoint(state);
+                elevator.setElevatorSetpoint(state);
                 break;
 
             case C_L2:
-                arm.setArmPivotState(state);
-                arm.setWristState(state);
-                elevator.setElevatorState(state);
+                arm.setArmSetpoint(state);
+                arm.setWristSetpoint(state);
+                elevator.setElevatorSetpoint(state);
                 break;
 
             case C_L3:
-                arm.setArmPivotState(state);
-                arm.setWristState(state);
-                elevator.setElevatorState(state);
+                arm.setArmSetpoint(state);
+                arm.setWristSetpoint(state);
+                elevator.setElevatorSetpoint(state);
                 break;
 
             case C_L4:
-                arm.setArmPivotState(state);
-                arm.setWristState(state);
-                elevator.setElevatorState(state);
+                arm.setArmSetpoint(state);
+                arm.setWristSetpoint(state);
+                elevator.setElevatorSetpoint(state);
                 break; 
                 
             case C_LOAD:
-                arm.setArmPivotState(state);
-                elevator.setElevatorState(state);
-                arm.setWristState(state);
+                arm.setArmSetpoint(state);
+                elevator.setElevatorSetpoint(state);
+                arm.setWristSetpoint(state);
                 break;
 
             case C_GROUND:
-                arm.setArmPivotState(state);
-                arm.setWristState(state);
-                elevator.setElevatorState(state);
+                arm.setArmSetpoint(state);
+                arm.setWristSetpoint(state);
+                elevator.setElevatorSetpoint(state);
                 break;
         }
     }
 
     public void end() {
-
+        
     }
 
     public boolean isFinished() {

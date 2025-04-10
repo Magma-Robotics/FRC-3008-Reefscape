@@ -165,7 +165,7 @@ public class VisionSubsystem extends SubsystemBase{
         //SmartDashboard.putNumberArray("Detected Tag IDs", detectedTagIDs);
         SmartDashboard.putString("Detected tag IDs", detectedTagIDs);*/
     }
-
+/*
     //Use this function to fetch the current pose of the robot estimated by limelight
     public LimelightHelpers.PoseEstimate GetVisionEstimate(){
         LimelightHelpers.PoseEstimate updatedEstimate;
@@ -173,5 +173,8 @@ public class VisionSubsystem extends SubsystemBase{
         updatedEstimate = m_FieldPose;
         lock.unlock();
         return updatedEstimate;
+    }*/
+    public LimelightHelpers.PoseEstimate GetVisionEstimate() {
+      return LimelightHelpers.getBotPoseEstimate_wpiBlue(LL_NAME);
     }
 }

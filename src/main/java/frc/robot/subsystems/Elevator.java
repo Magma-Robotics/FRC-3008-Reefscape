@@ -33,6 +33,7 @@ import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.units.measure.Distance;
+import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.units.measure.MutAngle;
 import edu.wpi.first.units.measure.MutDistance;
 import edu.wpi.first.units.measure.MutLinearVelocity;
@@ -59,9 +60,9 @@ public class Elevator extends SubsystemBase {
     private SparkFlex leftElevator = new SparkFlex(Constants.CANIds.kLeftElevatorID, MotorType.kBrushless);
     private SparkClosedLoopController elevatorController = leftElevator.getClosedLoopController();
     private RelativeEncoder leftElevatorEncoder = leftElevator.getEncoder();
-    public static double kElevatorP = 0.01;
+    public static double kElevatorP = 0.6052;
     public static double kElevatorI = 0;
-    public static double kElevatorD = 0.1;
+    public static double kElevatorD = 0;
 
     public static double elevatorSetpoint = 0;
 
@@ -69,22 +70,22 @@ public class Elevator extends SubsystemBase {
     private RelativeEncoder rightElevatorEncoder = rightElevator.getEncoder();
 
     private ElevatorFeedforward elevatorFeedforward = 
-        new ElevatorFeedforward(0.39968, 0.43219, 3.2903, 0.44208);
+        new ElevatorFeedforward(0.30021, 0.27706, 3.7525, 0.36076);
 
-    /*private final ProfiledPIDController m_controller = new ProfiledPIDController(
+    private final ProfiledPIDController m_controller = new ProfiledPIDController(
         kElevatorP,
         kElevatorI,
         kElevatorD,
-        new Constraints(1, 1));*/
+        new Constraints(Constants.Elevator.maxElevatorVelocity, Constants.Elevator.maxElevatorAcceleration));
 
     // SysId Routine and setup
     // Mutable holder for unit-safe voltage values, persisted to avoid reallocation.
     private final MutVoltage        m_appliedVoltage = Volts.mutable(0);
     // Mutable holder for unit-safe linear distance values, persisted to avoid reallocation.
-    private final MutDistance       m_distance       = Meters.mutable(0);
+    private final MutDistance       m_distance       = Inches.mutable(0);
     private final MutAngle          m_rotations      = Rotations.mutable(0);
     // Mutable holder for unit-safe linear velocity values, persisted to avoid reallocation.
-    private final MutLinearVelocity m_velocity       = MetersPerSecond.mutable(0);
+    private final MutLinearVelocity m_velocity       = InchesPerSecond.mutable(0);
     // SysID Routine
     private final SysIdRoutine      m_sysIdRoutine   =
         new SysIdRoutine(
@@ -114,7 +115,13 @@ public class Elevator extends SubsystemBase {
         //create configs
         leftElevatorConfig
             .inverted(true)
-            .idleMode(IdleMode.kBrake);
+            .idleMode(IdleMode.kBrake)
+            .smartCurrentLimit(40)
+            .closedLoopRampRate(0.1)
+            .closedLoop
+            .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
+            .outputRange(-1, 1);
+        /* 
         leftElevatorConfig
             .encoder
             .positionConversionFactor(Constants.Elevator.kElevatorRotationsToInches)
@@ -127,11 +134,18 @@ public class Elevator extends SubsystemBase {
             .maxMotion
             .maxVelocity(Constants.Elevator.maxElevatorVelocity)
             .maxAcceleration(Constants.Elevator.maxElevatorAcceleration)
-            .allowedClosedLoopError(0.5);
+            .allowedClosedLoopError(0.5);*/
+
+        
 
         rightElevatorConfig
             .idleMode(IdleMode.kBrake)
-            .follow(leftElevator, false);
+            .follow(leftElevator, false)
+            .smartCurrentLimit(40)
+            .closedLoopRampRate(0.1)
+            .closedLoop
+            .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
+            .outputRange(-1, 1);
         rightElevatorConfig
             .encoder
             .positionConversionFactor(Constants.Elevator.kElevatorRotationsToInches)
@@ -140,6 +154,8 @@ public class Elevator extends SubsystemBase {
         //sets configs
         leftElevator.configure(leftElevatorConfig, ResetMode.kNoResetSafeParameters, PersistMode.kPersistParameters);
         rightElevator.configure(rightElevatorConfig, ResetMode.kNoResetSafeParameters, PersistMode.kPersistParameters);
+
+        m_controller.setTolerance(0.5);
 
         SmartDashboard.putNumber("ElevatorSetpoint", elevatorSetpoint);
     }
@@ -166,8 +182,13 @@ public class Elevator extends SubsystemBase {
 
     public void reachElevatorTarget(double target) {
         elevatorSetpoint = target;
-        elevatorController.setReference(target, 
-                                        ControlType.kMAXMotionPositionControl);
+        /*elevatorController.setReference(target, 
+                                        ControlType.kMAXMotionPositionControl);*/
+        double voltsOut = MathUtil.clamp(
+            m_controller.calculate(leftElevatorEncoder.getPosition(), target) /*+
+            elevatorFeedforward.calculateWithVelocities(getElevatorVelocity().in(InchesPerSecond),
+                                                        m_controller.getSetpoint().velocity)*/, -7, 7);
+        leftElevator.setVoltage(voltsOut);
     }
 
     public Command setElevatorTarget(double target) {
@@ -205,10 +226,44 @@ public class Elevator extends SubsystemBase {
                 reachElevatorTarget(Constants.Elevator.C_GROUND_POS);
                 break;
         }
+
+            
+    }
+
+    public void setElevatorSetpoint(Constants.RobotStates.CoralStates state) {
+        switch(state) {
+            case C_STOW:
+                elevatorSetpoint = Constants.Elevator.C_STOW_POS;
+                break;
+            
+            case C_L1:
+                elevatorSetpoint = Constants.Elevator.C_L1_POS;
+                break;
+            
+            case C_L2:
+                elevatorSetpoint = Constants.Elevator.C_L2_POS;
+                break;
+            
+            case C_L3:
+                elevatorSetpoint = Constants.Elevator.C_L3_POS;
+                break;
+
+            case C_L4:
+                elevatorSetpoint = Constants.Elevator.C_L4_POS;
+                break;
+                
+            case C_LOAD:
+                elevatorSetpoint = Constants.Elevator.C_LOADING_POS;
+                break;
+
+            case C_GROUND:
+                elevatorSetpoint = Constants.Elevator.C_GROUND_POS;
+                break;
+        }
     }
 
     public Command setElevatorStateCommand(Constants.RobotStates.CoralStates state) {
-        return runOnce(() -> {
+        return run(() -> {
             switch(state) {
                 case C_STOW:
                     reachElevatorTarget(Constants.Elevator.C_STOW_POS);
@@ -262,6 +317,10 @@ public class Elevator extends SubsystemBase {
         leftElevatorEncoder.setPosition(0);
     }
 
+    public LinearVelocity getElevatorVelocity() {
+        return InchesPerSecond.of(leftElevatorEncoder.getVelocity());
+    }
+
     public Trigger atHeight(double height, double tolerance) {
         return new Trigger(() -> MathUtil.isNear(height, getLeftElevatorEncoderPos(), tolerance));
     }
@@ -273,9 +332,12 @@ public class Elevator extends SubsystemBase {
     @Override
     public void periodic() {
         SmartDashboard.putNumber("Elevator Pos", leftElevatorEncoder.getPosition());
+        //SmartDashboard.putNumber("ElevatorSetpoint", elevatorSetpoint);
 
-        if (Constants.Testing.testingElevator) {
+        /*if (Constants.Testing.testingElevator) {
             reachElevatorTarget(SmartDashboard.getNumber("ElevatorSetpoint", 0));
-        }
+        }*/
+        //reachElevatorTarget(SmartDashboard.getNumber("ElevatorSetpoint", 0));
+        reachElevatorTarget(elevatorSetpoint);
     }
 }

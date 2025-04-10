@@ -5,12 +5,6 @@
     "data": {
       "commands": [
         {
-          "type": "named",
-          "data": {
-            "name": "C_LOAD"
-          }
-        },
-        {
           "type": "path",
           "data": {
             "pathName": "LeftAuto1 - Drive Near Reef"
@@ -25,7 +19,7 @@
         {
           "type": "wait",
           "data": {
-            "waitTime": 1.8
+            "waitTime": 1.5
           }
         },
         {
@@ -61,7 +55,7 @@
         {
           "type": "wait",
           "data": {
-            "waitTime": 1.8
+            "waitTime": 1.5
           }
         },
         {
@@ -91,7 +85,7 @@
         {
           "type": "named",
           "data": {
-            "name": "C_L1"
+            "name": "C_L4"
           }
         },
         {
@@ -121,7 +115,7 @@
         {
           "type": "named",
           "data": {
-            "name": "C_LOAD"
+            "name": "C_STOW"
           }
         },
         {

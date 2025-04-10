@@ -18,8 +18,8 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 
 public class Hang extends SubsystemBase {
-    private SparkMaxConfig hangConfig = new SparkMaxConfig();
-    private SparkMax hang = new SparkMax(Constants.CANIds.kHangID, MotorType.kBrushless);
+    private SparkFlexConfig hangConfig = new SparkFlexConfig();
+    private SparkFlex hang = new SparkFlex(Constants.CANIds.kHangID, MotorType.kBrushless);
     private SparkClosedLoopController hangController = hang.getClosedLoopController();
     private double hangPivotSetpoint = 0;
     
