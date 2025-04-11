@@ -447,6 +447,7 @@ public class SwerveSubsystem extends SubsystemBase
       try {
         Pose2d visionEstimatePose = visionSubsystem.GetVisionEstimate().pose;
         resetOdometry(new Pose2d(visionEstimatePose.getX(), visionEstimatePose.getY(), getPose().getRotation()));
+        Commands.print("Updated POSE");
       }
       catch(Exception e) {
         resetOdometry(currentPose);

@@ -259,7 +259,57 @@ public class Elevator extends SubsystemBase {
             case C_GROUND:
                 elevatorSetpoint = Constants.Elevator.C_GROUND_POS;
                 break;
+            
+            case A_GROUND:
+                elevatorSetpoint = Constants.Elevator.A_GROUND_POS;
+                break;
+            
+            case A_BARGE:
+                elevatorSetpoint = Constants.Elevator.A_BARGE_POS;
+                break;
         }
+    }
+
+    public Command setElevatorSetpointCommand(Constants.RobotStates.CoralStates state) {
+        return run(() -> {
+            switch(state) {
+                case C_STOW:
+                    elevatorSetpoint = Constants.Elevator.C_STOW_POS;
+                    break;
+                
+                case C_L1:
+                    elevatorSetpoint = Constants.Elevator.C_L1_POS;
+                    break;
+                
+                case C_L2:
+                    elevatorSetpoint = Constants.Elevator.C_L2_POS;
+                    break;
+                
+                case C_L3:
+                    elevatorSetpoint = Constants.Elevator.C_L3_POS;
+                    break;
+
+                case C_L4:
+                    elevatorSetpoint = Constants.Elevator.C_L4_POS;
+                    break;
+                    
+                case C_LOAD:
+                    elevatorSetpoint = Constants.Elevator.C_LOADING_POS;
+                    break;
+
+                case C_GROUND:
+                    elevatorSetpoint = Constants.Elevator.C_GROUND_POS;
+                    break;
+                
+                case A_GROUND:
+                    elevatorSetpoint = Constants.Elevator.A_GROUND_POS;
+                    break;
+                
+                case A_BARGE:
+                    elevatorSetpoint = Constants.Elevator.A_BARGE_POS;
+                    break;
+            }
+        });
     }
 
     public Command setElevatorStateCommand(Constants.RobotStates.CoralStates state) {

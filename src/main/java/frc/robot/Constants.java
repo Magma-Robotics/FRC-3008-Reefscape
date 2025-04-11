@@ -50,9 +50,10 @@ public final class Constants
   public static final Matter CHASSIS    = new Matter(new Translation3d(0, 0, Units.Inches.of(8).in(Meters)), ROBOT_MASS);
   public static final double LOOP_TIME  = 0.13; //s, 20ms + 110ms sprk max velocity lag
   public static final double MAX_SPEED  = Units.Feet.of(12.66).in(Meters);
-  public static final double MAX_ACCEL  = Units.Meters.of(1).in(Meters);
-  public static final double MAX_ANGV  = Units.Radians.of(4).in(Radians);
-  public static final double MAX_ANGA = Units.Radians.of(3).in(Radians);
+  public static final double ALIGN_MAX_SPEED = Units.Meters.of(2).in(Meters);
+  public static final double MAX_ACCEL  = Units.Meters.of(2).in(Meters);
+  public static final double MAX_ANGV  = Units.Radians.of(5).in(Radians);
+  public static final double MAX_ANGA = Units.Radians.of(4).in(Radians);
 
 //  public static final class AutonConstants
 //  {
@@ -114,9 +115,11 @@ public final class Constants
     public static final double C_L1_ANGLE = 100;
     public static final double C_L2_ANGLE = 95;
     public static final double C_L3_ANGLE = 95;
-    public static final double C_L4_ANGLE = 86;
+    public static final double C_L4_ANGLE = 92.7849;
     public static final double C_LOADING_ANGLE = 70;
     public static final double C_GROUND_ANGLE = 170;
+    public static final double A_GROUND_ANGLE = 122;
+    public static final double A_BARGE_ANGLE = 0;
   }
 
   public static class Wrist {
@@ -138,9 +141,11 @@ public final class Constants
     public static final double C_L1_ANGLE = 177;
     public static final double C_L2_ANGLE = 192;
     public static final double C_L3_ANGLE = 192;
-    public static final double C_L4_ANGLE = 187;
+    public static final double C_L4_ANGLE = 187.28;
     public static final double C_LOADING_ANGLE = 61;
     public static final double C_GROUND_ANGLE = 204;
+    public static final double A_GROUND_ANGLE = 207;
+    public static final double A_BARGE_ANGLE = 0;
   }
 
   public static class Elevator {
@@ -161,9 +166,11 @@ public final class Constants
     public static final double C_L1_POS = 0;
     public static final double C_L2_POS = 18;
     public static final double C_L3_POS = 37;
-    public static final double C_L4_POS = 67;
+    public static final double C_L4_POS = 64.5;
     public static final double C_LOADING_POS = 13;
     public static final double C_GROUND_POS = 0;
+    public static final double A_GROUND_POS = 0;
+    public static final double A_BARGE_POS = 0;
   }
 
   public static class Hang {
@@ -184,8 +191,9 @@ public final class Constants
       C_L4,
       C_LOAD,
       C_GROUND,
-      C_BARGE,
-      C_PROCESSOR;
+      A_GROUND,
+      A_BARGE,
+      A_PROCESSOR;
     }
   }
 
@@ -256,6 +264,32 @@ public final class Constants
       public static final Pose2d RESET_POSE = new Pose2d(0, 0, new Rotation2d());
       public static final Pose3d SCORING_ELEMENT_NOT_COLLECTED = new Pose3d(0, 0, -1, Rotation3d.kZero);
 
+      public static final Pose2d REEF_A = new Pose2d(3.33, 4.16, Rotation2d.fromDegrees(0));
+      public static final Pose2d REEF_B = new Pose2d(3.33, 3.81, Rotation2d.fromDegrees(0));
+      public static final Pose2d REEF_C = new Pose2d(3.944, 3.66, Rotation2d.fromDegrees(60));
+      public static final Pose2d REEF_D = new Pose2d(4.084, 3.02, Rotation2d.fromDegrees(60));
+      public static final Pose2d REEF_E = new Pose2d(4.7745, 3.02, Rotation2d.fromDegrees(120));
+      public static final Pose2d REEF_F = new Pose2d(5.216, 3.6612, Rotation2d.fromDegrees(120));
+      public static final Pose2d REEF_G = new Pose2d(5.7186, 3.96, Rotation2d.fromDegrees(180));
+      public static final Pose2d REEF_H = new Pose2d(5.7186, 4.3118, Rotation2d.fromDegrees(180));
+      public static final Pose2d REEF_I = new Pose2d(5.2161, 4.6756, Rotation2d.fromDegrees(-120));
+      public static final Pose2d REEF_J = new Pose2d(4.7745, 5.0313, Rotation2d.fromDegrees(-120));
+      public static final Pose2d REEF_K = new Pose2d(4.084, 5.0313, Rotation2d.fromDegrees(-60));
+      public static final Pose2d REEF_L = new Pose2d(3.9447, 4.6756, Rotation2d.fromDegrees(-60));
+
+      /*public static final Pose2d REEF_A = new Pose2d(3.26, 4.09, Rotation2d.fromDegrees(0));
+      public static final Pose2d REEF_B = new Pose2d(3.26, 3.74, Rotation2d.fromDegrees(0));
+      public static final Pose2d REEF_C = new Pose2d(3.944, 3.66, Rotation2d.fromDegrees(60));
+      public static final Pose2d REEF_D = new Pose2d(4.084, 3.02, Rotation2d.fromDegrees(60));
+      public static final Pose2d REEF_E = new Pose2d(4.7745, 3.02, Rotation2d.fromDegrees(120));
+      public static final Pose2d REEF_F = new Pose2d(5.216, 3.6612, Rotation2d.fromDegrees(120));
+      public static final Pose2d REEF_G = new Pose2d(5.7186, 3.96, Rotation2d.fromDegrees(180));
+      public static final Pose2d REEF_H = new Pose2d(5.7186, 4.3118, Rotation2d.fromDegrees(180));
+      public static final Pose2d REEF_I = new Pose2d(5.2161, 4.6756, Rotation2d.fromDegrees(-120));
+      public static final Pose2d REEF_J = new Pose2d(4.7745, 5.0313, Rotation2d.fromDegrees(-120));
+      public static final Pose2d REEF_K = new Pose2d(4.084, 5.0313, Rotation2d.fromDegrees(-60));
+      public static final Pose2d REEF_L = new Pose2d(3.9447, 4.6756, Rotation2d.fromDegrees(-60));*/
+/* 
       // BRANCH POSES
       public static final Pose2d REEF_A = new Pose2d(2.930, 4.22, Rotation2d.fromDegrees(0));
       public static final Pose2d REEF_B = new Pose2d(2.930, 3.89, Rotation2d.fromDegrees(0));
@@ -269,6 +303,7 @@ public final class Constants
       public static final Pose2d REEF_J = new Pose2d(5.1508, 5.4436, Rotation2d.fromDegrees(-120));
       public static final Pose2d REEF_K = new Pose2d(3.8782, 5.4727, Rotation2d.fromDegrees(-60));
       public static final Pose2d REEF_L = new Pose2d(3.5924, 5.3077, Rotation2d.fromDegrees(-60));
+      */
 
       /*public static final Pose2d REEF_A = new Pose2d(2.860, 4.187, Rotation2d.fromDegrees(0));
       public static final Pose2d REEF_B = new Pose2d(2.860, 3.857, Rotation2d.fromDegrees(0));

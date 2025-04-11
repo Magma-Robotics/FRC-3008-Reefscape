@@ -175,6 +175,6 @@ public class VisionSubsystem extends SubsystemBase{
         return updatedEstimate;
     }*/
     public LimelightHelpers.PoseEstimate GetVisionEstimate() {
-      return LimelightHelpers.getBotPoseEstimate_wpiBlue(LL_NAME);
+      return LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(LL_NAME);
     }
 }

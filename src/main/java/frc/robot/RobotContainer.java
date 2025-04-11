@@ -32,6 +32,7 @@ import frc.robot.LimelightHelpers.PoseEstimate;
 import frc.robot.commands.AddVisionMeasurement;
 import frc.robot.commands.DriveManual;
 import frc.robot.commands.PathToCoral;
+import frc.robot.commands.SetArmSetpointCommand;
 import frc.robot.commands.SetCoralState;
 import frc.robot.subsystems.Arm;
 import frc.robot.subsystems.CoralIntake;
@@ -39,6 +40,7 @@ import frc.robot.subsystems.Elevator;
 import frc.robot.subsystems.Hang;
 import frc.robot.subsystems.SwerveSubsystem;
 import frc.robot.subsystems.VisionSubsystem;
+import frc.robot.subsystems.Wrist;
 
 import static edu.wpi.first.units.Units.DegreesPerSecond;
 import static edu.wpi.first.units.Units.Meters;
@@ -72,6 +74,7 @@ public class RobotContainer
   private final Arm arm = new Arm();
   private final CoralIntake coralIntake = new CoralIntake();
   private final Hang hang = new Hang();
+  private final Wrist wrist = new Wrist();
   private final SendableChooser<Command> autoChooser;
   private double slowMultiplier = 1;
 
@@ -81,27 +84,33 @@ public class RobotContainer
   }*/
 
   public Command C_L2() {
-    return elevator.setElevatorStateCommand(CoralStates.C_L2).
-      alongWith(Commands.waitUntil(elevator.atHeight(Constants.Elevator.C_L2_POS, 5)).andThen(arm.setArmPivotStateCommand(CoralStates.C_L2)))
+    return elevator.setElevatorSetpointCommand(CoralStates.C_L2).
+      alongWith(wrist.setWristSetpointCommand(CoralStates.C_L2)).
+      alongWith(new SetArmSetpointCommand(arm, CoralStates.C_LOAD)).
+      alongWith(Commands.waitUntil(elevator.atHeight(Constants.Elevator.C_L2_POS, 15)).andThen(arm.setArmSetpointCommand(CoralStates.C_L2)))
       .withTimeout(4);
   }
 
   public Command C_L3() {
-    return elevator.setElevatorStateCommand(CoralStates.C_L3).
-      alongWith(Commands.waitUntil(elevator.atHeight(Constants.Elevator.C_L3_POS, 10)).andThen(arm.setArmPivotStateCommand(CoralStates.C_L3)))
+    return elevator.setElevatorSetpointCommand(CoralStates.C_L3).
+      alongWith(wrist.setWristSetpointCommand(CoralStates.C_L3)).
+      alongWith(new SetArmSetpointCommand(arm, CoralStates.C_LOAD)).
+      alongWith(Commands.waitUntil(elevator.atHeight(Constants.Elevator.C_L3_POS, 40)).andThen(arm.setArmSetpointCommand(CoralStates.C_L3)))
       .withTimeout(4);
   }
 
   public Command C_L4() {
-    return elevator.setElevatorStateCommand(CoralStates.C_L4).
-      alongWith(Commands.waitUntil(elevator.atHeight(Constants.Elevator.C_L4_POS, 10)).andThen(arm.setArmPivotStateCommand(CoralStates.C_L4)))
+    return elevator.setElevatorSetpointCommand(CoralStates.C_L4).
+      alongWith(wrist.setWristSetpointCommand(CoralStates.C_L4)).
+      alongWith(new SetArmSetpointCommand(arm, CoralStates.C_LOAD)).
+      alongWith(Commands.waitUntil(elevator.atHeight(Constants.Elevator.C_L4_POS, 40)).andThen(arm.setArmSetpointCommand(CoralStates.C_L4)))
       .withTimeout(4);
   }
 
   public Command C_LOAD() {
-    return arm.setArmPivotStateCommand(CoralStates.C_LOAD).
+    return arm.setArmSetpointCommand(CoralStates.C_LOAD).
       alongWith(Commands.waitUntil(arm.atArmAngle(Constants.Arm.C_LOADING_ANGLE, 3)).
-      andThen(elevator.setElevatorStateCommand(CoralStates.C_LOAD)))
+      andThen(elevator.setElevatorSetpointCommand(CoralStates.C_LOAD)))
       .withTimeout(4);
   }
 
@@ -136,7 +145,7 @@ public class RobotContainer
   // controls are front-left positive
   // left stick controls translation
   // right stick controls the angular velocity of the robot
-  Command driveFieldOrientedAnglularVelocity = drivebase.driveFieldOriented(driveAngularVelocity);//, () -> driverXbox.rightBumper().getAsBoolean());
+  Command driveFieldOrientedAngularVelocity = drivebase.driveFieldOriented(driveAngularVelocity);//, () -> driverXbox.rightBumper().getAsBoolean());
 
   Command driveSetpointGen = drivebase.driveWithSetpointGeneratorFieldRelative(driveDirectAngle);
 
@@ -216,7 +225,7 @@ public class RobotContainer
 
     testXbox
       .povLeft()
-      .whileTrue(arm.runWristSysIdRoutine());
+      .whileTrue(wrist.runWristSysIdRoutine());
     
     testXbox
       .povDown()
@@ -234,9 +243,9 @@ public class RobotContainer
     });
 
     YAxisJoystickTrigger
-      .onTrue(arm.setManualArm(() -> MathUtil.applyDeadband(-driverPartnerXbox.getLeftY(), 0.01), 
-                                      () -> MathUtil.applyDeadband(-driverPartnerXbox.getRightY(), 0.01)))
-      .onFalse(arm.stopWholeArm());
+      .onTrue(arm.setManualArm(() -> MathUtil.applyDeadband(-driverPartnerXbox.getLeftY(), 0.01))
+        .alongWith(wrist.setManualWrist(() -> MathUtil.applyDeadband(-driverPartnerXbox.getRightY(), 0.01))))
+      .onFalse(arm.stopPIDArm().alongWith(wrist.stopPIDWrist()));
 
       /* //if limiter is bugging out, then uncomment this and comment out the thing above this
     YAxisJoystickTrigger
@@ -254,7 +263,7 @@ public class RobotContainer
         () -> driverXbox.b().getAsBoolean(),
         () -> driverXbox.leftBumper().getAsBoolean(),
         () -> driverXbox.povUp().getAsBoolean()));*/
-    drivebase.setDefaultCommand(driveFieldOrientedAnglularVelocity);
+    drivebase.setDefaultCommand(driveFieldOrientedAngularVelocity);
     
 /* 
     driverXbox
@@ -265,25 +274,102 @@ public class RobotContainer
       .start()
       .onTrue(Commands.runOnce(drivebase::zeroGyro));
 
+    driverXbox
+      .back()
+      .onTrue(Commands.runOnce(() -> drivebase.resetPoseWithAprilTag()));
+
     //hang
     driverXbox
-      .x()
+      .y()
       .onTrue(hang.hangDown())
       .onFalse(hang.stopHang());
 
     driverXbox
-      .y()
+      .a()
       .onTrue(hang.hangUp())
       .onFalse(hang.stopHang());
 
     driverXbox
+      .rightBumper()
+      .onTrue(Commands.run(() -> slowMultiplier = 0.5))
+      .onFalse(Commands.run(() -> slowMultiplier = 1));
+
+    driverXbox
+      .leftTrigger()
+      .and(driverXbox.povDown())
+      .whileTrue(new PathToCoral(drivebase, Constants.constField.getReefPositions().get().get(0)));
+
+    driverXbox
+      .rightTrigger()
+      .and(driverXbox.povDown())
+      .whileTrue(new PathToCoral(drivebase, Constants.constField.getReefPositions().get().get(1)));
+
+    driverXbox
+      .leftTrigger()
+      .and(driverXbox.povRight())
+      .whileTrue(new PathToCoral(drivebase, Constants.constField.getReefPositions().get().get(2)));
+
+    driverXbox
+      .rightTrigger()
+      .and(driverXbox.povRight())
+      .whileTrue(new PathToCoral(drivebase, Constants.constField.getReefPositions().get().get(3)));
+
+    driverXbox
+      .rightTrigger()
+      .and(driverXbox.b())
+      .whileTrue(new PathToCoral(drivebase, Constants.constField.getReefPositions().get().get(4)));
+
+    driverXbox
+      .leftTrigger()
+      .and(driverXbox.b())
+      .whileTrue(new PathToCoral(drivebase, Constants.constField.getReefPositions().get().get(5)));
+
+    driverXbox
+      .rightTrigger()
+      .and(driverXbox.povUp())
+      .whileTrue(new PathToCoral(drivebase, Constants.constField.getReefPositions().get().get(6)));
+
+    driverXbox
+      .leftTrigger()
+      .and(driverXbox.povUp())
+      .whileTrue(new PathToCoral(drivebase, Constants.constField.getReefPositions().get().get(7)));
+
+      driverXbox
+      .rightTrigger()
+      .and(driverXbox.x())
+      .whileTrue(new PathToCoral(drivebase, Constants.constField.getReefPositions().get().get(8)));
+
+    driverXbox
+      .leftTrigger()
+      .and(driverXbox.x())
+      .whileTrue(new PathToCoral(drivebase, Constants.constField.getReefPositions().get().get(9)));
+
+    driverXbox
+      .leftTrigger()
+      .and(driverXbox.povLeft())
+      .whileTrue(new PathToCoral(drivebase, Constants.constField.getReefPositions().get().get(10)));
+
+    driverXbox
+      .rightTrigger()
+      .and(driverXbox.povLeft())
+      .whileTrue(new PathToCoral(drivebase, Constants.constField.getReefPositions().get().get(11)));
+
+    /*driverXbox
       .leftTrigger(0.01)
       .whileTrue(new PathToCoral(drivebase, drivebase.getDesiredReef(true)));
 
     driverXbox
       .rightTrigger()
-      .whileTrue(new PathToCoral(drivebase, drivebase.getDesiredReef(false)));
+      .whileTrue(new PathToCoral(drivebase, drivebase.getDesiredReef(false)));*/
+/*
+    driverXbox
+      .leftTrigger(0.01)
+      .whileTrue(new PathToCoral(drivebase, Constants.constField.getReefPositions().get().get(0)));
 
+    driverXbox
+      .rightTrigger()
+      .whileTrue(new PathToCoral(drivebase, Constants.constField.getReefPositions().get().get(1)));
+*/
     /*driverXbox
       .leftTrigger(0.01)
       .whileTrue(Commands.deferredProxy(() -> drivebase.driveToReef(true)));
@@ -314,14 +400,6 @@ public class RobotContainer
       .whileTrue(Commands.deferredProxy(() -> drivebase.alignToReef(false, MetersPerSecond.of(driveAngularVelocity.get().vxMetersPerSecond),
       MetersPerSecond.of(driveAngularVelocity.get().vyMetersPerSecond), RadiansPerSecond.of(driveAngularVelocity.get().omegaRadiansPerSecond))));
 */
-    driverXbox
-      .rightBumper()
-      .onTrue(Commands.run(() -> slowMultiplier = 0.5))
-      .onFalse(Commands.run(() -> slowMultiplier = 1));
-
-    driverXbox
-      .povUp()
-      .onTrue(Commands.runOnce(() -> drivebase.resetPoseWithAprilTag()));
 
     /*driverXbox
       .rightTrigger(0.01)
@@ -396,31 +474,39 @@ public class RobotContainer
 
     driverPartnerXbox
       .back()
-      .onTrue(new SetCoralState(arm, elevator, CoralStates.C_STOW));
+      .onTrue(new SetCoralState(arm, wrist, elevator, CoralStates.C_STOW));
 
     driverPartnerXbox
       .povLeft()
-      .onTrue(new SetCoralState(arm, elevator, CoralStates.C_LOAD));
+      .onTrue(new SetCoralState(arm, wrist, elevator, CoralStates.C_LOAD));
 
     driverPartnerXbox
       .povRight()
-      .onTrue(new SetCoralState(arm, elevator, CoralStates.C_GROUND));
+      .onTrue(new SetCoralState(arm, wrist, elevator, CoralStates.C_GROUND));
 
     driverPartnerXbox
       .a()
-      .onTrue(new SetCoralState(arm, elevator, CoralStates.C_L1));
+      .onTrue(new SetCoralState(arm, wrist, elevator, CoralStates.C_L1));
     
     driverPartnerXbox
       .b()
-      .onTrue(new SetCoralState(arm, elevator, CoralStates.C_L2));
+      .onTrue(new SetCoralState(arm, wrist, elevator, CoralStates.C_L2));
 
     driverPartnerXbox
       .y()
-      .onTrue(new SetCoralState(arm, elevator, CoralStates.C_L3));
+      .onTrue(new SetCoralState(arm, wrist, elevator, CoralStates.C_L3));
 
     driverPartnerXbox
       .x()
-      .onTrue(new SetCoralState(arm, elevator, CoralStates.C_L4));
+      .onTrue(new SetCoralState(arm, wrist, elevator, CoralStates.C_L4));
+    
+    driverPartnerXbox
+      .rightStick()
+      .onTrue(new SetCoralState(arm, wrist, elevator, CoralStates.A_GROUND));
+
+    driverPartnerXbox
+      .start()
+      .onTrue(new SetCoralState(arm, wrist, elevator, CoralStates.A_BARGE));
     
     driverPartnerXbox
       .leftBumper()
@@ -429,7 +515,8 @@ public class RobotContainer
     
     driverPartnerXbox
       .rightBumper()
-      .onTrue(coralIntake.intakeCoral());
+      .onTrue(coralIntake.intakeCoral())
+      .onFalse(coralIntake.stopIntake());
 
     driverPartnerXbox
       .leftTrigger()
@@ -438,7 +525,8 @@ public class RobotContainer
     
     driverPartnerXbox
       .rightTrigger()
-      .onTrue(coralIntake.stopIntake());
+      .onTrue(coralIntake.slowIntakeCoral())
+      .onFalse(coralIntake.stopIntake());
 
     //sys id tests on swerve drive
     /*driverXbox
@@ -476,16 +564,18 @@ public class RobotContainer
       DegreesPerSecond.of(0), 1, Meters.of(40)));
 
 
-    NamedCommands.registerCommand("C_STOW", new SetCoralState(arm, elevator, CoralStates.C_STOW));
-    NamedCommands.registerCommand("C_LOAD", new SetCoralState(arm, elevator, CoralStates.C_LOAD));
-    NamedCommands.registerCommand("C_L1", new SetCoralState(arm, elevator, CoralStates.C_L1));
-    NamedCommands.registerCommand("C_L2", new SetCoralState(arm, elevator, CoralStates.C_L2));
-    NamedCommands.registerCommand("C_L3", new SetCoralState(arm, elevator, CoralStates.C_L3));
-    NamedCommands.registerCommand("C_L4", new SetCoralState(arm, elevator, CoralStates.C_L4));
+    NamedCommands.registerCommand("C_STOW", new SetCoralState(arm, wrist, elevator, CoralStates.C_STOW));
+    NamedCommands.registerCommand("C_LOAD", new SetCoralState(arm, wrist, elevator, CoralStates.C_LOAD));
+    NamedCommands.registerCommand("C_L1", new SetCoralState(arm, wrist, elevator, CoralStates.C_L1));
+    NamedCommands.registerCommand("C_L2", new SetCoralState(arm, wrist, elevator, CoralStates.C_L2));
+    NamedCommands.registerCommand("C_L3", new SetCoralState(arm, wrist, elevator, CoralStates.C_L3));
+    NamedCommands.registerCommand("C_L4", new SetCoralState(arm, wrist, elevator, CoralStates.C_L4));
 
     NamedCommands.registerCommand("C_INTAKE", coralIntake.intakeCoral());
     NamedCommands.registerCommand("C_OUTTAKE", coralIntake.outtakeCoral());
     NamedCommands.registerCommand("C_STOPINTAKE", coralIntake.stopIntake());
+
+    NamedCommands.registerCommand("autoAlign", Commands.deferredProxy(() -> new PathToCoral(drivebase, SELECTED_AUTO_PREP_MAP[AUTO_PREP_NUM])));
   }
 
   /**
@@ -504,6 +594,12 @@ public class RobotContainer
         Pose2d[] middleL4Auto = new Pose2d[1];
         middleL4Auto[0] = fieldPositions.get(6); // G
         return middleL4Auto;
+
+      case "Left 2 Coral Auto":
+        Pose2d[] left2CoralAuto = new Pose2d[2];
+        left2CoralAuto[0] = fieldPositions.get(9); // J
+        left2CoralAuto[1] = fieldPositions.get(11); // L
+        return left2CoralAuto;
       /* 
       case "Four_Piece_High_Double_Tickle":
         Pair<RobotState, Pose2d>[] fourPieceHighDoubleTickle = new Pair[4];

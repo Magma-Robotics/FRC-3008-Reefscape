@@ -6,6 +6,7 @@ import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.wpilibj.RobotState;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.LimelightHelpers;
 import frc.robot.LimelightHelpers.PoseEstimate;
 import frc.robot.subsystems.SwerveSubsystem;
@@ -39,6 +40,7 @@ public class AddVisionMeasurement extends Command {
         Optional<PoseEstimate> estimatedPose = visionSubsystem.determinePoseEstimate(gyroRate);
         if (estimatedPose.isPresent() && !RobotState.isAutonomous()) {
             drive.addVisionMeasurement(estimatedPose.get().pose, estimatedPose.get().timestampSeconds);
+            Commands.print("Added VISION MEASUREMENT!");
         }
     }
 
