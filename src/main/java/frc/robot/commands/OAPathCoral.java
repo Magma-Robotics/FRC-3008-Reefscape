@@ -13,24 +13,26 @@ import frc.robot.Constants;
 import frc.robot.LimelightHelpers.PoseEstimate;
 import frc.robot.subsystems.*;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Vector;
+import java.util.ArrayList;
 
 import org.dyn4j.geometry.Vector2;
 import org.dyn4j.world.Island;
 
-import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.path.GoalEndState;
 import com.pathplanner.lib.path.IdealStartingState;
 import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.path.PathPlannerPath;
 import com.pathplanner.lib.path.Waypoint;
 import com.pathplanner.lib.path.PathPoint;
+import com.pathplanner.lib.pathfinding.*;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose2d;
 
-public class PathToCoral extends Command {
+public class OAPathCoral extends Command {
     //SwerveSubsystem
     private final SwerveSubsystem swerveSubsystem;
 
@@ -39,32 +41,27 @@ public class PathToCoral extends Command {
     private int stepNum = 0;
     private boolean isLastPoint = false;
     private boolean completeFlag = false;
-    private double lastExecuteTime = 0.0;
 
     //Movement variables
-    private double timeStep = 0.0;
-    private double kp = 1.0;
-    private double ki = 0.3;
-    private double kd = 0.0;
-    private double integralErrorX = 0;
-    private double integralErrorY = 0;
-    private double derivativeErrorX = 0;
-    private double derivativeErrorY = 0;
     private double decelerationDist = 0.75;
     private double angleDecelerationDistance = 20.0;
-    private double minAngleSpeed = 0.1;
-    private double minSpeed = 0.1;
+    private double minAngleSpeed = 0.25;
+    private double minSpeed = 0.25;
 
 
     //Pathplanning variables
     private List<PathPoint> pathPoints;
-    private double enRouteTolarance = 0.4;
-    private double finalTolerance = 0.25;
+    private double enRouteTolarance = 0.3;
+    private double finalTolerance = 0.05;
     private double rotationTarget = 0.0;
     private double rotationTolerance = 3.0;
     private Pose2d finalGoalPose;
+    private boolean waitForPathPlan;
+    private PathConstraints constraintsForPath;
+    private GoalEndState goalStateForpath;
+    private double planDecisionDistance = 0.25;
 
-    public PathToCoral(SwerveSubsystem swerve, Pose2d goalPose) {
+    public OAPathCoral(SwerveSubsystem swerve, Pose2d goalPose) {
         swerveSubsystem = swerve;
         finalGoalPose = goalPose;
         addRequirements(swerve);
@@ -81,36 +78,73 @@ public class PathToCoral extends Command {
     // Called when the command is initially scheduled.
     @Override
     public void initialize() {
+        waitForPathPlan = false;
         completeFlag = false;
-        stepNum = -1;
-        /*
-        integralErrorX = 0.0;
-        integralErrorY = 0.0;
-        derivativeErrorX = 0.0;
-        derivativeErrorY = 0.0;
-        */
-        //finalGoalPose = getFinalGoalPose(coralPositionID);
-        pathPoints = ppPlan(finalGoalPose).getAllPathPoints();
-        rotationTarget = pathPoints.get(pathPoints.size() - 1).rotationTarget.rotation().getDegrees();
-        SmartDashboard.putNumber("NumSteps", pathPoints.size());
-        isLastPoint = false;
-        updateSubGoals();
-        lastExecuteTime = Timer.getTimestamp();
+        goalStateForpath = null;
+        constraintsForPath = null;
+        stepNum = 0;
+        pathPoints = null;
+        PathPlannerPath plannedPath;
+        if(isShortPath(finalGoalPose)){
+            /* 
+            plannedPath = ppPlan(finalGoalPose);
+            pathPoints = plannedPath.getAllPathPoints();
+            rotationTarget = pathPoints.get(pathPoints.size() - 1).rotationTarget.rotation().getDegrees();
+            if(pathPoints.size() == 1){
+                isLastPoint = true;
+            }
+            else{
+                isLastPoint = false;
+            }*/
+            pathPoints = new ArrayList<PathPoint>();
+            pathPoints.add(new PathPoint(finalGoalPose.getTranslation()));
+            rotationTarget = finalGoalPose.getRotation().getDegrees();
+            isLastPoint = true;
+        }
+        else{
+            isLastPoint = false;
+            plannedPath = oaPlan(finalGoalPose);
+            if(plannedPath == null){
+                waitForPathPlan = true;
+            }
+            else{
+                pathPoints = plannedPath.getAllPathPoints();
+                rotationTarget = pathPoints.get(pathPoints.size() - 1).rotationTarget.rotation().getDegrees();
+                SmartDashboard.putNumber("NumSteps", pathPoints.size());
+            }
+        }
+        swerveSubsystem.updateOdomForPathPlanning();
+        //updateSubGoals();
     }
 
     // Called every time the scheduler runs while the command is scheduled.
     @Override
     public void execute() {
         SmartDashboard.putData(swerveSubsystem);
-        //Calculate time since last execute
-        timeStep = Timer.getTimestamp() - lastExecuteTime;
-        lastExecuteTime = Timer.getTimestamp();
+        if(waitForPathPlan){
+            if(Pathfinding.isNewPathAvailable()){
+                PathPlannerPath plannedPath = Pathfinding.getCurrentPath(constraintsForPath, goalStateForpath);
+                if(plannedPath == null){
+                    SmartDashboard.putBoolean("Waiting for path", waitForPathPlan);
+                    return;
+                }
+                pathPoints = plannedPath.getAllPathPoints();
+                rotationTarget = pathPoints.get(pathPoints.size() - 1).rotationTarget.rotation().getDegrees();
+                SmartDashboard.putNumber("NumSteps", pathPoints.size());
+                waitForPathPlan = false;
+                SmartDashboard.putBoolean("Waiting for path", waitForPathPlan);
+            }
+            else{
+                return;
+            }
+        }
         //Get variables needed for path planning
         PathPoint currentGoalPoint = pathPoints.get(stepNum);
         Pose2d currentPose = getCurrentPos();
         SmartDashboard.putNumber("Goal X", currentGoalPoint.position.getX());
         SmartDashboard.putNumber("Goal Y", currentGoalPoint.position.getY());
         SmartDashboard.putNumber("StepNumber", stepNum);
+        //Determine if path is valid
         //--Calculate move step--//
         //Determine if this is the last point in the path (Optimize this!) 
         ChassisSpeeds moveStep = calculateMoveStep(currentGoalPoint, currentPose, finalGoalPose);
@@ -126,6 +160,7 @@ public class PathToCoral extends Command {
         if(moveStep != null){
             SmartDashboard.putNumber("CommandedMoveStepX", moveStep.vxMetersPerSecond);
             SmartDashboard.putNumber("CommandedMoveStepY", moveStep.vyMetersPerSecond);
+            //swerveSubsystem.drive(moveStep);
             swerveSubsystem.driveFieldOriented(moveStep);
         }
         //swerveSubsystem.drive(moveStep);
@@ -155,6 +190,7 @@ public class PathToCoral extends Command {
         //Determine if are at the end of path or at a path node
         double distToGoal = goalPoint.position.getDistance(currentPose.getTranslation());
         double distToFinal = finalGoalPose.minus(currentPose).getTranslation().getNorm();
+        SmartDashboard.putNumber("DistToFinal", distToFinal);
         if(distToGoal <= enRouteTolarance){
             if(!isLastPoint){
                 //If here, we are at a path node and within enroute tolerance, move to next path step
@@ -183,44 +219,7 @@ public class PathToCoral extends Command {
         speedFactor = speedFactor/decelerationDist;
         speedFactor = Math.max(speedFactor, minSpeed);
 
-        /* 
-        double speedFactor;
-        if(distToFinal <= decelerationDist){ //Clamp function could replcace this all
-            speedFactor = (1 - (decelerationDist - distToFinal));
-            if(speedFactor < minSpeed){
-                speedFactor = minSpeed;
-            }
-        }
-        else{
-            speedFactor = 1.0;
-        }
-        */
-
         Translation2d cheat = translationError.times(Constants.ALIGN_MAX_SPEED * speedFactor);
-
-        /*
-        //Calculate X
-        double proportionalError = kp * translationError.getX();
-        integralErrorX += translationError.getX();
-        double integralError = ki * integralErrorX;
-        double derivativeError = kd * (translationError.getX() - derivativeErrorX);
-        derivativeErrorX = translationError.getX();
-        double finalX = proportionalError + integralError + derivativeError;
-
-        //Calculate Y
-        proportionalError = kp * translationError.getY();
-        integralErrorY += translationError.getY();
-        integralError = ki * integralErrorY;
-        derivativeError = kd * (translationError.getY() - derivativeErrorY);
-        derivativeErrorY = translationError.getY();
-        double finalY = proportionalError + integralError + derivativeError;
-
-        Translation2d finalMovementVector = new Translation2d(finalX, finalY);
-        if(finalMovementVector.getNorm() > 1.0){
-            finalMovementVector = finalMovementVector.div(finalMovementVector.getNorm());
-        }
-        finalMovementVector = finalMovementVector.times(Constants.MAX_SPEED);
-        */
 
         //---Rotation---//
         double rotationError = rotationTarget - swerveSubsystem.getSwerveDrive().getYaw().getDegrees();
@@ -240,43 +239,11 @@ public class PathToCoral extends Command {
         else{
             moveStep.omegaRadiansPerSecond = 0.0;
         }
-        //moveStep.vxMetersPerSecond = finalMovementVector.getX();
-        //moveStep.vyMetersPerSecond = finalMovementVector.getY();
         moveStep.vxMetersPerSecond = cheat.getX();
         moveStep.vyMetersPerSecond = cheat.getY();
-
-        /*
-        //Compare desired travel vector to current speeds and apply acceleration as nessessary
-        double currentSpeed = Math.hypot(swerveSubsystem.getFieldVelocity().vxMetersPerSecond,
-                                        swerveSubsystem.getFieldVelocity().vyMetersPerSecond);
-        //If last point, determine if we can slow down in time
-        if(isLastPoint){
-            //-(vi^2)/2a = d
-            double distToStop = Math.pow(currentSpeed, 2.0)/(2*Constants.MAX_ACCEL);
-            if(distToStop <= distToGoal){
-                moveStep.vxMetersPerSecond = swerveSubsystem.getFieldVelocity().vxMetersPerSecond - (Constants.MAX_ACCEL * timeStep);
-                moveStep.vyMetersPerSecond = swerveSubsystem.getFieldVelocity().vyMetersPerSecond - (Constants.MAX_ACCEL * timeStep);
-            }
-        }*/
-
         
-
         return moveStep;
     }
-
-    ///Returns the final pose position based off of pose defined in the Constants
-    /*private Pose2d getFinalGoalPose(int goalSelect){
-        Pose2d goalPose;
-        switch(goalSelect){
-            case 18:
-                goalPose = Constants.CoralAlignmentCoords.blueFarLeftL;
-                break;
-            default:
-                goalPose = Constants.CoralAlignmentCoords.blueFarLeftR;
-                break;
-        }
-        return goalPose;
-    }*/
 
     private PathPlannerPath ppPlan(Pose2d finalGoal){
         //Get current position with either camera reading or odometry estimate
@@ -292,10 +259,36 @@ public class PathToCoral extends Command {
 
         List<Waypoint> pathPoints = PathPlannerPath.waypointsFromPoses(currentPose, finalGoal);
         PathConstraints constraints = new PathConstraints(Constants.MAX_SPEED, Constants.MAX_ACCEL, Constants.MAX_ANGV, Constants.MAX_ANGA);
-        double currentVelocity = Math.sqrt(Math.pow(swerveSubsystem.getFieldVelocity().vxMetersPerSecond, 2) + Math.pow(swerveSubsystem.getFieldVelocity().vyMetersPerSecond, 2));
-        IdealStartingState currentState = new IdealStartingState(currentVelocity, swerveSubsystem.getHeading());
+        //double currentVelocity = Math.sqrt(Math.pow(swerveSubsystem.getFieldVelocity().vxMetersPerSecond, 2) + Math.pow(swerveSubsystem.getFieldVelocity().vyMetersPerSecond, 2));
+        //IdealStartingState currentState = new IdealStartingState(currentVelocity, swerveSubsystem.getHeading());
         PathPlannerPath pathToCoral = new PathPlannerPath(pathPoints, constraints, null, new GoalEndState(0.0, Rotation2d.fromDegrees(finalGoal.getRotation().getDegrees())));
+
+        //Pathfinding.ensureInitialized();
+        //Pathfinding.setGoalPosition(finalGoal.getTranslation());
+        //Pathfinding.setStartPosition(currentPose.getTranslation());
         return pathToCoral;
+    }
+
+    private PathPlannerPath oaPlan(Pose2d finalGoal){
+        //Get current position with either camera reading or odometry estimate
+        PoseEstimate initPose = swerveSubsystem.visionSubsystem.GetVisionEstimate();
+        Pose2d currentPose;
+        if(initPose.tagCount <= 0){
+             currentPose = swerveSubsystem.getPose();
+        }
+        else{
+            currentPose = initPose.pose;
+        }
+        Pathfinding.ensureInitialized();
+        Pathfinding.setStartPosition(currentPose.getTranslation());
+        Pathfinding.setGoalPosition(finalGoal.getTranslation());
+        constraintsForPath = new PathConstraints(Constants.MAX_SPEED, Constants.MAX_ACCEL, Constants.MAX_ANGV, Constants.MAX_ANGA);
+        goalStateForpath = new GoalEndState(0.0, Rotation2d.fromDegrees(finalGoal.getRotation().getDegrees()));
+        PathPlannerPath plannedPath = null;
+        if(Pathfinding.isNewPathAvailable()){
+            plannedPath = Pathfinding.getCurrentPath(constraintsForPath, goalStateForpath);
+        }
+        return plannedPath;
     }
 
     private Pose2d getCurrentPos(){
@@ -312,4 +305,12 @@ public class PathToCoral extends Command {
             isLastPoint = true;
         }
     }
+
+    private boolean isShortPath(Pose2d finalGoalPose){
+        Translation2d vectorToFinal = getCurrentPos().getTranslation().minus(finalGoalPose.getTranslation());
+        if(vectorToFinal.getNorm() <= planDecisionDistance){
+            return true;
+        }
+        return false;
+    }    
 }

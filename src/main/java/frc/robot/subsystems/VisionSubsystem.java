@@ -37,19 +37,22 @@ public class VisionSubsystem extends SubsystemBase{
 
     private final String LL_NAME;
 
+    private SwerveSubsystem swerveSubsystem;
+
     PoseEstimate lastEstimate = new PoseEstimate();
     boolean newEstimate = false;
     Pose2d pose = new Pose2d();
 
     private boolean useMegaTag2 = false;
     //Gyro
-    private AHRS navX = new AHRS(AHRS.NavXComType.kMXP_SPI, AHRS.NavXUpdateRate.k50Hz);
+    //private AHRS navX = new AHRS(AHRS.NavXComType.kMXP_SPI, AHRS.NavXUpdateRate.k50Hz);
 
     //Constructor
-    public VisionSubsystem(String LimelightName){
+    public VisionSubsystem(String LimelightName, SwerveSubsystem botSwerve){
         LL_NAME = LimelightName;
+        swerveSubsystem = botSwerve;
         LimelightHelpers.setPipelineIndex(LL_NAME, 0);
-        navX.zeroYaw();
+        //navX.zeroYaw();
     }
 
     public PoseEstimate getLastPoseEstimate() {
@@ -176,5 +179,12 @@ public class VisionSubsystem extends SubsystemBase{
     }*/
     public LimelightHelpers.PoseEstimate GetVisionEstimate() {
       return LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(LL_NAME);
+    }
+
+    public Pose2d GetVisionPose() {
+      if (newEstimate == true) {
+        return LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2(LL_NAME).pose;
+      }
+      return swerveSubsystem.getPose();
     }
 }

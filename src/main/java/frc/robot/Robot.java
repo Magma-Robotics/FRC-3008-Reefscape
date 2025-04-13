@@ -141,16 +141,6 @@ public class Robot extends TimedRobot
   @Override
   public void teleopPeriodic()
   {
-    //Check to see if have been camera initalized
-    if(!b_IsPositionCameraInitalized){
-      //If here, robot position was not initalized by the camera yet
-      LimelightHelpers.PoseEstimate initEstimate = m_robotContainer.getVisionEstimate();
-      if(initEstimate != null){ //Check if subsystem is givng actual values
-        //Reset swerve drive odometry to camera pose
-        m_robotContainer.resetOdometry(initEstimate.pose);
-        b_IsPositionCameraInitalized = true;
-      }
-    }
   }
 
   @Override

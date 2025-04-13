@@ -91,7 +91,7 @@ public class SwerveSubsystem extends SubsystemBase
   private final boolean             visionDriveTest     = false;
   private boolean b_IsPositionCameraInitalized = false;
 
-  private final VisionSubsystem visionSubsystem = new VisionSubsystem("limelight");
+  public final VisionSubsystem visionSubsystem = new VisionSubsystem("limelight", this);
   /**
    * PhotonVision class to keep an accurate odometry.
    */
@@ -167,6 +167,19 @@ public class SwerveSubsystem extends SubsystemBase
   @Override
   public void periodic()
   {
+    //Check to see if have been camera initalized
+    if(!b_IsPositionCameraInitalized){
+      //If here, robot position was not initalized by the camera yet
+      LimelightHelpers.PoseEstimate initEstimate = visionSubsystem.GetVisionEstimate();
+      if(initEstimate != null){ //Check if subsystem is givng actual values
+        //Reset swerve drive odometry to camera pose
+        if (initEstimate.tagCount > 0) {
+          swerveDrive.resetOdometry(initEstimate.pose);
+          b_IsPositionCameraInitalized = true;
+        }
+      }
+    }
+
     SmartDashboard.putNumber("X Pos", getPose().getX());
     SmartDashboard.putNumber("Y Pos", getPose().getY());
     SmartDashboard.putNumber("Rotation", getPose().getRotation().getDegrees());
@@ -946,5 +959,9 @@ public class SwerveSubsystem extends SubsystemBase
 
   public double getGyroRate() {
     return swerveDrive.getGyro().getYawAngularVelocity().baseUnitMagnitude();
+  }
+
+  public void updateOdomForPathPlanning() {
+    b_IsPositionCameraInitalized = false;
   }
 }

@@ -31,6 +31,7 @@ import frc.robot.Constants.RobotStates.CoralStates;
 import frc.robot.LimelightHelpers.PoseEstimate;
 import frc.robot.commands.AddVisionMeasurement;
 import frc.robot.commands.DriveManual;
+import frc.robot.commands.OAPathCoral;
 import frc.robot.commands.PathToCoral;
 import frc.robot.commands.SetArmSetpointCommand;
 import frc.robot.commands.SetCoralState;
@@ -69,7 +70,7 @@ public class RobotContainer
   // The robot's subsystems and commands are defined here...
   private final SwerveSubsystem       drivebase  = new SwerveSubsystem(new File(Filesystem.getDeployDirectory(),
                                                                                 "swerve/main"));
-  private final VisionSubsystem visionSubsystem = new VisionSubsystem("limelight");
+  private final VisionSubsystem visionSubsystem = new VisionSubsystem("limelight", drivebase);
   private final Elevator elevator = new Elevator();
   private final Arm arm = new Arm();
   private final CoralIntake coralIntake = new CoralIntake();
@@ -87,31 +88,31 @@ public class RobotContainer
     return elevator.setElevatorSetpointCommand(CoralStates.C_L2).
       alongWith(wrist.setWristSetpointCommand(CoralStates.C_L2)).
       alongWith(new SetArmSetpointCommand(arm, CoralStates.C_LOAD)).
-      alongWith(Commands.waitUntil(elevator.atHeight(Constants.Elevator.C_L2_POS, 15)).andThen(arm.setArmSetpointCommand(CoralStates.C_L2)))
-      .withTimeout(4);
+      alongWith(Commands.waitUntil(elevator.atHeight(Constants.Elevator.C_L2_POS, 5)).andThen(arm.setArmSetpointCommand(CoralStates.C_L2)))
+      .withTimeout(1.5);
   }
 
   public Command C_L3() {
     return elevator.setElevatorSetpointCommand(CoralStates.C_L3).
       alongWith(wrist.setWristSetpointCommand(CoralStates.C_L3)).
       alongWith(new SetArmSetpointCommand(arm, CoralStates.C_LOAD)).
-      alongWith(Commands.waitUntil(elevator.atHeight(Constants.Elevator.C_L3_POS, 40)).andThen(arm.setArmSetpointCommand(CoralStates.C_L3)))
-      .withTimeout(4);
+      alongWith(Commands.waitUntil(elevator.atHeight(Constants.Elevator.C_L3_POS, 15)).andThen(arm.setArmSetpointCommand(CoralStates.C_L3)))
+      .withTimeout(1.5);
   }
 
   public Command C_L4() {
     return elevator.setElevatorSetpointCommand(CoralStates.C_L4).
       alongWith(wrist.setWristSetpointCommand(CoralStates.C_L4)).
       alongWith(new SetArmSetpointCommand(arm, CoralStates.C_LOAD)).
-      alongWith(Commands.waitUntil(elevator.atHeight(Constants.Elevator.C_L4_POS, 40)).andThen(arm.setArmSetpointCommand(CoralStates.C_L4)))
-      .withTimeout(4);
+      alongWith(Commands.waitUntil(elevator.atHeight(Constants.Elevator.C_L4_POS, 15)).andThen(arm.setArmSetpointCommand(CoralStates.C_L4)))
+      .withTimeout(1.5);
   }
 
   public Command C_LOAD() {
     return arm.setArmSetpointCommand(CoralStates.C_LOAD).
       alongWith(Commands.waitUntil(arm.atArmAngle(Constants.Arm.C_LOADING_ANGLE, 3)).
       andThen(elevator.setElevatorSetpointCommand(CoralStates.C_LOAD)))
-      .withTimeout(4);
+      .withTimeout(1.5);
   }
 
   /**
@@ -198,6 +199,8 @@ public class RobotContainer
     configureAutoBindings();
     autoChooser = AutoBuilder.buildAutoChooser();
 
+    autoChooser.addOption("limelightCenter", limelightCenter());
+
     // Configure the trigger bindings
     configureBindings();
     DriverStation.silenceJoystickConnectionWarning(true);
@@ -205,6 +208,8 @@ public class RobotContainer
     visionSubsystem.setMegaTag2(true);
 
     SmartDashboard.putData(autoChooser);
+
+    selectAutoMap();
 
     //drivebase.centerModulesCommand();
   }
@@ -490,15 +495,15 @@ public class RobotContainer
     
     driverPartnerXbox
       .b()
-      .onTrue(new SetCoralState(arm, wrist, elevator, CoralStates.C_L2));
+      .onTrue(C_L2());
 
     driverPartnerXbox
       .y()
-      .onTrue(new SetCoralState(arm, wrist, elevator, CoralStates.C_L3));
+      .onTrue(C_L3());
 
     driverPartnerXbox
       .x()
-      .onTrue(new SetCoralState(arm, wrist, elevator, CoralStates.C_L4));
+      .onTrue(C_L4());
     
     driverPartnerXbox
       .rightStick()
@@ -567,15 +572,19 @@ public class RobotContainer
     NamedCommands.registerCommand("C_STOW", new SetCoralState(arm, wrist, elevator, CoralStates.C_STOW));
     NamedCommands.registerCommand("C_LOAD", new SetCoralState(arm, wrist, elevator, CoralStates.C_LOAD));
     NamedCommands.registerCommand("C_L1", new SetCoralState(arm, wrist, elevator, CoralStates.C_L1));
-    NamedCommands.registerCommand("C_L2", new SetCoralState(arm, wrist, elevator, CoralStates.C_L2));
-    NamedCommands.registerCommand("C_L3", new SetCoralState(arm, wrist, elevator, CoralStates.C_L3));
-    NamedCommands.registerCommand("C_L4", new SetCoralState(arm, wrist, elevator, CoralStates.C_L4));
+    NamedCommands.registerCommand("C_L2", C_L2());//new SetCoralState(arm, wrist, elevator, CoralStates.C_L2));
+    NamedCommands.registerCommand("C_L3", C_L3());//new SetCoralState(arm, wrist, elevator, CoralStates.C_L3));
+    NamedCommands.registerCommand("C_L4", C_L4());//new SetCoralState(arm, wrist, elevator, CoralStates.C_L4));
 
     NamedCommands.registerCommand("C_INTAKE", coralIntake.intakeCoral());
     NamedCommands.registerCommand("C_OUTTAKE", coralIntake.outtakeCoral());
     NamedCommands.registerCommand("C_STOPINTAKE", coralIntake.stopIntake());
 
-    NamedCommands.registerCommand("autoAlign", Commands.deferredProxy(() -> new PathToCoral(drivebase, SELECTED_AUTO_PREP_MAP[AUTO_PREP_NUM])));
+    NamedCommands.registerCommand("CLIMB_OUT", hang.hangUp());
+    NamedCommands.registerCommand("CLIMB_IN", hang.hangDown());
+    NamedCommands.registerCommand("CLIMB_STOP", hang.stopHang());
+
+    NamedCommands.registerCommand("autoAlign", Commands.deferredProxy(() -> new PathToCoral(drivebase, SELECTED_AUTO_PREP_MAP[AUTO_PREP_NUM])).withTimeout(5));
   }
 
   /**
@@ -600,37 +609,19 @@ public class RobotContainer
         left2CoralAuto[0] = fieldPositions.get(9); // J
         left2CoralAuto[1] = fieldPositions.get(11); // L
         return left2CoralAuto;
-      /* 
-      case "Four_Piece_High_Double_Tickle":
-        Pair<RobotState, Pose2d>[] fourPieceHighDoubleTickle = new Pair[4];
-        fourPieceHighDoubleTickle[0] = new Pair<RobotState, Pose2d>(AUTO_PREP_CORAL_4, fieldPositions.get(11)); // L
-        fourPieceHighDoubleTickle[1] = new Pair<RobotState, Pose2d>(AUTO_PREP_CORAL_4, fieldPositions.get(10)); // K
-        fourPieceHighDoubleTickle[2] = new Pair<RobotState, Pose2d>(AUTO_PREP_CORAL_4, fieldPositions.get(0)); // A
-        fourPieceHighDoubleTickle[3] = new Pair<RobotState, Pose2d>(AUTO_PREP_CORAL_4, fieldPositions.get(9)); // J
-        return fourPieceHighDoubleTickle;
-      case "Four_Piece_Low":
-        Pair<RobotState, Pose2d>[] fourPieceLow = new Pair[4];
-        fourPieceLow[0] = new Pair<RobotState, Pose2d>(AUTO_PREP_CORAL_4, fieldPositions.get(2)); // C
-        fourPieceLow[1] = new Pair<RobotState, Pose2d>(AUTO_PREP_CORAL_4, fieldPositions.get(3)); // D
-        fourPieceLow[2] = new Pair<RobotState, Pose2d>(AUTO_PREP_CORAL_4, fieldPositions.get(4)); // E
-        fourPieceLow[3] = new Pair<RobotState, Pose2d>(AUTO_PREP_CORAL_4, fieldPositions.get(5)); // F
-        return fourPieceLow;
-      case "Four_Piece_High_Single_Tickle":
-        Pair<RobotState, Pose2d>[] fourPieceHighSingleTickle = new Pair[4];
-        fourPieceHighSingleTickle[0] = new Pair<RobotState, Pose2d>(AUTO_PREP_CORAL_4, fieldPositions.get(11)); // L
-        fourPieceHighSingleTickle[1] = new Pair<RobotState, Pose2d>(AUTO_PREP_CORAL_4, fieldPositions.get(10)); // K
-        fourPieceHighSingleTickle[2] = new Pair<RobotState, Pose2d>(AUTO_PREP_CORAL_4, fieldPositions.get(0)); // A
-        fourPieceHighSingleTickle[3] = new Pair<RobotState, Pose2d>(AUTO_PREP_CORAL_4, fieldPositions.get(9)); // J
-        return fourPieceHighSingleTickle;
-      case "Algae_Net":
-        Pair<RobotState, Pose2d>[] algaeNet = new Pair[1];
-        algaeNet[0] = new Pair<RobotState, Pose2d>(AUTO_PREP_CORAL_4, fieldPositions.get(6)); // G
-        return algaeNet;
-        */
+
       default:
         Pose2d[] noAutoSelected = new Pose2d[1];
         noAutoSelected[0] = new Pose2d();
         return noAutoSelected;
     }
+  }
+
+  public Command limelightCenter() {
+    return new SequentialCommandGroup(
+                                      new OAPathCoral(drivebase, Constants.constField.getReefPositions().get().get(6)),
+                                      C_L4(),
+                                      Commands.waitSeconds(1.5),
+                                      new SetCoralState(arm, wrist, elevator, CoralStates.C_STOW));
   }
 }

@@ -1,0 +1,121 @@
+{
+  "version": "2025.0",
+  "command": {
+    "type": "sequential",
+    "data": {
+      "commands": [
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Copy of RightAuto1 - Drive To Reef"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "C_L4"
+          }
+        },
+        {
+          "type": "wait",
+          "data": {
+            "waitTime": 1.8
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "C_OUTTAKE"
+          }
+        },
+        {
+          "type": "wait",
+          "data": {
+            "waitTime": 0.5
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "C_INTAKE"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "C_LOAD"
+          }
+        },
+        {
+          "type": "wait",
+          "data": {
+            "waitTime": 1.5
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Copy of RightAuto2 - Drive To Coral Station"
+          }
+        },
+        {
+          "type": "wait",
+          "data": {
+            "waitTime": 1.2
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "C_STOPINTAKE"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Copy of RightAuto3 - Drive To Reef"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "C_L4"
+          }
+        },
+        {
+          "type": "wait",
+          "data": {
+            "waitTime": 1.5
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "C_OUTTAKE"
+          }
+        },
+        {
+          "type": "wait",
+          "data": {
+            "waitTime": 0.5
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "C_STOPINTAKE"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "C_STOW"
+          }
+        }
+      ]
+    }
+  },
+  "resetOdom": true,
+  "folder": "Right Comp Autos",
+  "choreoAuto": false
+}

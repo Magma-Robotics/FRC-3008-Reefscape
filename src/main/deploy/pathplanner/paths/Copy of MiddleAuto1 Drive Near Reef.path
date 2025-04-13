@@ -3,41 +3,25 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 4.0,
-        "y": 7.0
+        "x": 7.598,
+        "y": 3.832
       },
       "prevControl": null,
       "nextControl": {
-        "x": 3.362971578553738,
-        "y": 6.962762102410376
+        "x": 6.89242613636364,
+        "y": 3.8504971590909087
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 2.0,
-        "y": 7.0
+        "x": 5.77,
+        "y": 3.832
       },
       "prevControl": {
-        "x": 1.66271559777439,
-        "y": 7.009158339235139
-      },
-      "nextControl": {
-        "x": 3.219601777299948,
-        "y": 6.9668839509488505
-      },
-      "isLocked": false,
-      "linkedName": null
-    },
-    {
-      "anchor": {
-        "x": 4.0,
-        "y": 7.0
-      },
-      "prevControl": {
-        "x": 2.6530137852943647,
-        "y": 7.002659532639264
+        "x": 6.256692880794701,
+        "y": 3.8392640728476817
       },
       "nextControl": null,
       "isLocked": false,
@@ -49,7 +33,7 @@
   "pointTowardsZones": [],
   "eventMarkers": [],
   "globalConstraints": {
-    "maxVelocity": 0.5,
+    "maxVelocity": 3.0,
     "maxAcceleration": 3.0,
     "maxAngularVelocity": 540.0,
     "maxAngularAcceleration": 720.0,
@@ -61,10 +45,10 @@
     "rotation": 180.0
   },
   "reversed": false,
-  "folder": "Test",
+  "folder": "Middle Comp Auto Test",
   "idealStartingState": {
     "velocity": 0,
     "rotation": 180.0
   },
-  "useDefaultConstraints": false
+  "useDefaultConstraints": true
 }

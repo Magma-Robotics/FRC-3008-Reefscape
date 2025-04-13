@@ -5,9 +5,11 @@
   "pathFolders": [
     "Comp Autos",
     "Left Comp Auto",
+    "Left Comp Auto Test",
     "Middle Comp Auto",
-    "Right Comp Autos",
-    "Test"
+    "Middle Comp Auto Test",
+    "Right Comp Auto Test",
+    "Right Comp Autos"
   ],
   "autoFolders": [
     "Left Comp Autos",
