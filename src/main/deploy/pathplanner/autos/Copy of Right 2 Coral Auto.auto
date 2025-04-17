@@ -5,9 +5,41 @@
     "data": {
       "commands": [
         {
-          "type": "path",
+          "type": "named",
           "data": {
-            "pathName": "Copy of RightAuto1 - Drive To Reef"
+            "name": "CLIMB_OUT"
+          }
+        },
+        {
+          "type": "parallel",
+          "data": {
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "Copy of RightAuto1 - Drive To Reef"
+                }
+              },
+              {
+                "type": "sequential",
+                "data": {
+                  "commands": [
+                    {
+                      "type": "wait",
+                      "data": {
+                        "waitTime": 2.0
+                      }
+                    },
+                    {
+                      "type": "named",
+                      "data": {
+                        "name": "CLIMB_STOP"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
           }
         },
         {
@@ -19,7 +51,7 @@
         {
           "type": "wait",
           "data": {
-            "waitTime": 1.8
+            "waitTime": 1.5
           }
         },
         {
@@ -31,7 +63,7 @@
         {
           "type": "wait",
           "data": {
-            "waitTime": 0.5
+            "waitTime": 0.4
           }
         },
         {
@@ -61,7 +93,7 @@
         {
           "type": "wait",
           "data": {
-            "waitTime": 1.2
+            "waitTime": 1.0
           }
         },
         {
@@ -97,7 +129,7 @@
         {
           "type": "wait",
           "data": {
-            "waitTime": 0.5
+            "waitTime": 0.4
           }
         },
         {

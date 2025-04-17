@@ -24,7 +24,6 @@ public class Robot extends TimedRobot
   private RobotContainer m_robotContainer;
 
   private Timer disabledTimer;
-  private boolean b_IsPositionCameraInitalized = false;
 
   public Robot()
   {

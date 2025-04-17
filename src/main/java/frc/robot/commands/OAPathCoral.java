@@ -44,8 +44,8 @@ public class OAPathCoral extends Command {
 
     //Movement variables
     private double decelerationDist = 0.75;
-    private double angleDecelerationDistance = 20.0;
-    private double minAngleSpeed = 0.25;
+    private double angleDecelerationDistance = 7.0;
+    private double minAngleSpeed = 0.5;
     private double minSpeed = 0.25;
 
 
@@ -222,7 +222,7 @@ public class OAPathCoral extends Command {
         Translation2d cheat = translationError.times(Constants.ALIGN_MAX_SPEED * speedFactor);
 
         //---Rotation---//
-        double rotationError = rotationTarget - swerveSubsystem.getSwerveDrive().getYaw().getDegrees();
+        double rotationError = rotationTarget - (swerveSubsystem.getSwerveDrive().getYaw().getDegrees()%360);
         SmartDashboard.putNumber("Rotation Error", rotationError);
 
         //Testing only
@@ -231,10 +231,12 @@ public class OAPathCoral extends Command {
         rotationSpeedFactor = Math.max(rotationSpeedFactor, minAngleSpeed);
 
         if(rotationError >= rotationTolerance){
-            moveStep.omegaRadiansPerSecond = Constants.MAX_ANGV * rotationSpeedFactor * rotationError * 0.01;
+            //moveStep.omegaRadiansPerSecond = Constants.MAX_ANGV * rotationSpeedFactor * rotationError * 0.01;
+            moveStep.omegaRadiansPerSecond = (Constants.MAX_ANGV/4) * rotationSpeedFactor;
         }
         else if(rotationError <= -rotationTolerance){
-            moveStep.omegaRadiansPerSecond = Constants.MAX_ANGV * rotationSpeedFactor * rotationError * 0.01;
+            //moveStep.omegaRadiansPerSecond = Constants.MAX_ANGV * rotationSpeedFactor * rotationError * 0.01;
+            moveStep.omegaRadiansPerSecond = -(Constants.MAX_ANGV/4) * rotationSpeedFactor;
         }
         else{
             moveStep.omegaRadiansPerSecond = 0.0;
@@ -274,10 +276,11 @@ public class OAPathCoral extends Command {
         PoseEstimate initPose = swerveSubsystem.visionSubsystem.GetVisionEstimate();
         Pose2d currentPose;
         if(initPose.tagCount <= 0){
-             currentPose = swerveSubsystem.getPose();
+            currentPose = swerveSubsystem.getPose();
         }
         else{
             currentPose = initPose.pose;
+            swerveSubsystem.resetOdometry(currentPose);
         }
         Pathfinding.ensureInitialized();
         Pathfinding.setStartPosition(currentPose.getTranslation());
@@ -312,5 +315,5 @@ public class OAPathCoral extends Command {
             return true;
         }
         return false;
-    }    
+    }
 }

@@ -89,7 +89,7 @@ public class SwerveSubsystem extends SubsystemBase
    * Enable vision odometry updates while driving.
    */
   private final boolean             visionDriveTest     = false;
-  private boolean b_IsPositionCameraInitalized = false;
+  public boolean b_IsPositionCameraInitalized = false;
 
   public final VisionSubsystem visionSubsystem = new VisionSubsystem("limelight", this);
   /**
@@ -455,7 +455,7 @@ public class SwerveSubsystem extends SubsystemBase
   }
 
 
-  public void resetPoseWithAprilTag() {
+  public boolean resetPoseWithAprilTag() {
     Pose2d currentPose = getPose();
       try {
         Pose2d visionEstimatePose = visionSubsystem.GetVisionEstimate().pose;
@@ -464,7 +464,9 @@ public class SwerveSubsystem extends SubsystemBase
       }
       catch(Exception e) {
         resetOdometry(currentPose);
+        return false;
       }
+    return true;
   }
 
   public Command driveToReef(boolean leftBranchRequested) {

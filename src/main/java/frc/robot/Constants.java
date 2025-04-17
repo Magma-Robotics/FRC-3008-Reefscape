@@ -119,7 +119,7 @@ public final class Constants
     public static final double C_LOADING_ANGLE = 70;
     public static final double C_GROUND_ANGLE = 174;
     public static final double A_GROUND_ANGLE = 122;
-    public static final double A_BARGE_ANGLE = 0;
+    public static final double A_BARGE_ANGLE = 90;
   }
 
   public static class Wrist {
@@ -145,7 +145,7 @@ public final class Constants
     public static final double C_LOADING_ANGLE = 61;
     public static final double C_GROUND_ANGLE = 207;
     public static final double A_GROUND_ANGLE = 207;
-    public static final double A_BARGE_ANGLE = 0;
+    public static final double A_BARGE_ANGLE = 90;
   }
 
   public static class Elevator {
@@ -320,10 +320,16 @@ public final class Constants
 */
 
       // CORAL STATION POSES
+      public static final Pose2d LEFT_CORAL_STATION_FAR = new Pose2d(1.426, 7.221, Rotation2d.fromDegrees(125));
+      public static final Pose2d LEFT_CORAL_STATION_NEAR = new Pose2d(0.71, 6.68, Rotation2d.fromDegrees(125));
+      public static final Pose2d RIGHT_CORAL_STATION_FAR = new Pose2d(1.306, 0.879, Rotation2d.fromDegrees(-125));
+      public static final Pose2d RIGHT_CORAL_STATION_NEAR = new Pose2d(0.64, 1.37, Rotation2d.fromDegrees(-125));
+
+      /*// CORAL STATION POSES
       public static final Pose2d LEFT_CORAL_STATION_FAR = new Pose2d(1.64, 7.33, Rotation2d.fromDegrees(125));
       public static final Pose2d LEFT_CORAL_STATION_NEAR = new Pose2d(0.71, 6.68, Rotation2d.fromDegrees(125));
       public static final Pose2d RIGHT_CORAL_STATION_FAR = new Pose2d(1.61, 0.70, Rotation2d.fromDegrees(-125));
-      public static final Pose2d RIGHT_CORAL_STATION_NEAR = new Pose2d(0.64, 1.37, Rotation2d.fromDegrees(-125));
+      public static final Pose2d RIGHT_CORAL_STATION_NEAR = new Pose2d(0.64, 1.37, Rotation2d.fromDegrees(-125));*/
 
       // processor poses
       public static final Pose2d PROCESSOR = new Pose2d(6, .77, Rotation2d.fromDegrees(-90));

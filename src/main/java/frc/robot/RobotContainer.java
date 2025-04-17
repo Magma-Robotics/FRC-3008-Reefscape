@@ -16,6 +16,7 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.RobotState;
+import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -30,6 +31,7 @@ import frc.robot.Constants.constField;
 import frc.robot.Constants.RobotStates.CoralStates;
 import frc.robot.LimelightHelpers.PoseEstimate;
 import frc.robot.commands.AddVisionMeasurement;
+import frc.robot.commands.CoralAuto;
 import frc.robot.commands.DriveManual;
 import frc.robot.commands.OAPathCoral;
 import frc.robot.commands.PathToCoral;
@@ -79,11 +81,6 @@ public class RobotContainer
   private final SendableChooser<Command> autoChooser;
   private double slowMultiplier = 1;
 
-  /*public Command C_L1() {
-    return elevator.setElevatorStateCommand(CoralStates.C_L1).
-      alongWith(Commands.waitUntil(elevator.atHeight(0, 5)).andThen(arm.setArmPivotStateCommand(CoralStates.C_L1)));
-  }*/
-
   public Command C_L2() {
     return elevator.setElevatorSetpointCommand(CoralStates.C_L2).
       alongWith(wrist.setWristSetpointCommand(CoralStates.C_L2)).
@@ -108,12 +105,27 @@ public class RobotContainer
       .withTimeout(1.5);
   }
 
-  public Command C_LOAD() {
-    return arm.setArmSetpointCommand(CoralStates.C_LOAD).
-      alongWith(Commands.waitUntil(arm.atArmAngle(Constants.Arm.C_LOADING_ANGLE, 3)).
-      andThen(elevator.setElevatorSetpointCommand(CoralStates.C_LOAD)))
+  public Command C_L2WithoutArm() {
+    return elevator.setElevatorSetpointCommand(CoralStates.C_L2).
+      alongWith(wrist.setWristSetpointCommand(CoralStates.C_L2)).
+      alongWith(arm.setArmSetpointCommand(CoralStates.C_LOAD))
       .withTimeout(1.5);
   }
+
+  public Command C_L3WithoutArm() {
+    return elevator.setElevatorSetpointCommand(CoralStates.C_L3).
+      alongWith(wrist.setWristSetpointCommand(CoralStates.C_L3)).
+      alongWith(arm.setArmSetpointCommand(CoralStates.C_LOAD))
+      .withTimeout(1.5);
+  }
+
+  public Command C_L4WithoutArm() {
+    return elevator.setElevatorSetpointCommand(CoralStates.C_L4).
+      alongWith(wrist.setWristSetpointCommand(CoralStates.C_L4)).
+      alongWith(arm.setArmSetpointCommand(CoralStates.C_LOAD))
+      .withTimeout(1.5);
+  }
+
 
   /**
    * Converts driver input into a field-relative ChassisSpeeds that is controlled by angular velocity.
@@ -200,6 +212,7 @@ public class RobotContainer
     autoChooser = AutoBuilder.buildAutoChooser();
 
     autoChooser.addOption("limelightCenter", limelightCenter());
+    autoChooser.addOption("limelightLeft", limelightLeft());
 
     // Configure the trigger bindings
     configureBindings();
@@ -270,18 +283,20 @@ public class RobotContainer
         () -> driverXbox.povUp().getAsBoolean()));*/
     drivebase.setDefaultCommand(driveFieldOrientedAngularVelocity);
     
-/* 
-    driverXbox
-      .a()
-      .whileTrue(elevator.runSysIdRoutine());
-*/
     driverXbox
       .start()
       .onTrue(Commands.runOnce(drivebase::zeroGyro));
 
     driverXbox
       .back()
-      .onTrue(Commands.runOnce(() -> drivebase.resetPoseWithAprilTag()));
+      .onTrue(Commands.runOnce(() -> {
+        if (drivebase.resetPoseWithAprilTag()) {
+          driverXbox.setRumble(RumbleType.kLeftRumble, 0.4);
+        }
+        }))
+      .onFalse(Commands.runOnce(() -> {
+        driverXbox.setRumble(RumbleType.kLeftRumble, 0);
+      }));
 
     //hang
     driverXbox
@@ -302,151 +317,159 @@ public class RobotContainer
     driverXbox
       .leftTrigger()
       .and(driverXbox.povDown())
-      .whileTrue(new PathToCoral(drivebase, Constants.constField.getReefPositions().get().get(0)));
+      .whileTrue(new OAPathCoral(drivebase, Constants.constField.getReefPositions().get().get(0))
+        .andThen(Commands.runOnce(() -> {
+          driverXbox.setRumble(RumbleType.kBothRumble, 0.5);
+          driverPartnerXbox.setRumble(RumbleType.kBothRumble, 0.5);
+        })))
+      .onFalse(Commands.runOnce(() -> {
+        driverXbox.setRumble(RumbleType.kBothRumble, 0);
+        driverPartnerXbox.setRumble(RumbleType.kBothRumble, 0);
+      }));
 
     driverXbox
       .rightTrigger()
       .and(driverXbox.povDown())
-      .whileTrue(new PathToCoral(drivebase, Constants.constField.getReefPositions().get().get(1)));
+      .whileTrue(new OAPathCoral(drivebase, Constants.constField.getReefPositions().get().get(1))
+        .andThen(Commands.runOnce(() -> {
+          driverXbox.setRumble(RumbleType.kBothRumble, 0.5);
+          driverPartnerXbox.setRumble(RumbleType.kBothRumble, 0.5);
+        })))
+      .onFalse(Commands.runOnce(() -> {
+        driverXbox.setRumble(RumbleType.kBothRumble, 0);
+        driverPartnerXbox.setRumble(RumbleType.kBothRumble, 0);
+      }));
 
     driverXbox
       .leftTrigger()
       .and(driverXbox.povRight())
-      .whileTrue(new PathToCoral(drivebase, Constants.constField.getReefPositions().get().get(2)));
+      .whileTrue(new OAPathCoral(drivebase, Constants.constField.getReefPositions().get().get(2))
+        .andThen(Commands.runOnce(() -> {
+          driverXbox.setRumble(RumbleType.kBothRumble, 0.5);
+          driverPartnerXbox.setRumble(RumbleType.kBothRumble, 0.5);
+        })))
+      .onFalse(Commands.runOnce(() -> {
+        driverXbox.setRumble(RumbleType.kBothRumble, 0);
+        driverPartnerXbox.setRumble(RumbleType.kBothRumble, 0);
+      }));
 
     driverXbox
       .rightTrigger()
       .and(driverXbox.povRight())
-      .whileTrue(new PathToCoral(drivebase, Constants.constField.getReefPositions().get().get(3)));
+      .whileTrue(new OAPathCoral(drivebase, Constants.constField.getReefPositions().get().get(3))
+        .andThen(Commands.runOnce(() -> {
+          driverXbox.setRumble(RumbleType.kBothRumble, 0.5);
+          driverPartnerXbox.setRumble(RumbleType.kBothRumble, 0.5);
+        })))
+      .onFalse(Commands.runOnce(() -> {
+        driverXbox.setRumble(RumbleType.kBothRumble, 0);
+        driverPartnerXbox.setRumble(RumbleType.kBothRumble, 0);
+      }));
 
     driverXbox
       .rightTrigger()
       .and(driverXbox.b())
-      .whileTrue(new PathToCoral(drivebase, Constants.constField.getReefPositions().get().get(4)));
+      .whileTrue(new OAPathCoral(drivebase, Constants.constField.getReefPositions().get().get(4))
+        .andThen(Commands.runOnce(() -> {
+          driverXbox.setRumble(RumbleType.kBothRumble, 0.5);
+          driverPartnerXbox.setRumble(RumbleType.kBothRumble, 0.5);
+        })))
+      .onFalse(Commands.runOnce(() -> {
+        driverXbox.setRumble(RumbleType.kBothRumble, 0);
+        driverPartnerXbox.setRumble(RumbleType.kBothRumble, 0);
+      }));
 
     driverXbox
       .leftTrigger()
       .and(driverXbox.b())
-      .whileTrue(new PathToCoral(drivebase, Constants.constField.getReefPositions().get().get(5)));
+      .whileTrue(new OAPathCoral(drivebase, Constants.constField.getReefPositions().get().get(5))
+        .andThen(Commands.runOnce(() -> {
+          driverXbox.setRumble(RumbleType.kBothRumble, 0.5);
+          driverPartnerXbox.setRumble(RumbleType.kBothRumble, 0.5);
+        })))
+      .onFalse(Commands.runOnce(() -> {
+        driverXbox.setRumble(RumbleType.kBothRumble, 0);
+        driverPartnerXbox.setRumble(RumbleType.kBothRumble, 0);
+      }));
 
     driverXbox
       .rightTrigger()
       .and(driverXbox.povUp())
-      .whileTrue(new PathToCoral(drivebase, Constants.constField.getReefPositions().get().get(6)));
+      .whileTrue(new OAPathCoral(drivebase, Constants.constField.getReefPositions().get().get(6))
+        .andThen(Commands.runOnce(() -> {
+          driverXbox.setRumble(RumbleType.kBothRumble, 0.5);
+          driverPartnerXbox.setRumble(RumbleType.kBothRumble, 0.5);
+        })))
+      .onFalse(Commands.runOnce(() -> {
+        driverXbox.setRumble(RumbleType.kBothRumble, 0);
+        driverPartnerXbox.setRumble(RumbleType.kBothRumble, 0);
+      }));
 
     driverXbox
       .leftTrigger()
       .and(driverXbox.povUp())
-      .whileTrue(new PathToCoral(drivebase, Constants.constField.getReefPositions().get().get(7)));
+      .whileTrue(new OAPathCoral(drivebase, Constants.constField.getReefPositions().get().get(7))
+        .andThen(Commands.runOnce(() -> {
+          driverXbox.setRumble(RumbleType.kBothRumble, 0.5);
+          driverPartnerXbox.setRumble(RumbleType.kBothRumble, 0.5);
+        })))
+      .onFalse(Commands.runOnce(() -> {
+        driverXbox.setRumble(RumbleType.kBothRumble, 0);
+        driverPartnerXbox.setRumble(RumbleType.kBothRumble, 0);
+      }));
 
       driverXbox
       .rightTrigger()
       .and(driverXbox.x())
-      .whileTrue(new PathToCoral(drivebase, Constants.constField.getReefPositions().get().get(8)));
+      .whileTrue(new OAPathCoral(drivebase, Constants.constField.getReefPositions().get().get(8))
+        .andThen(Commands.runOnce(() -> {
+          driverXbox.setRumble(RumbleType.kBothRumble, 0.5);
+          driverPartnerXbox.setRumble(RumbleType.kBothRumble, 0.5);
+        })))
+      .onFalse(Commands.runOnce(() -> {
+        driverXbox.setRumble(RumbleType.kBothRumble, 0);
+        driverPartnerXbox.setRumble(RumbleType.kBothRumble, 0);
+      }));
 
     driverXbox
       .leftTrigger()
       .and(driverXbox.x())
-      .whileTrue(new PathToCoral(drivebase, Constants.constField.getReefPositions().get().get(9)));
+      .whileTrue(new OAPathCoral(drivebase, Constants.constField.getReefPositions().get().get(9))
+        .andThen(Commands.runOnce(() -> {
+          driverXbox.setRumble(RumbleType.kBothRumble, 0.5);
+          driverPartnerXbox.setRumble(RumbleType.kBothRumble, 0.5);
+        })))
+      .onFalse(Commands.runOnce(() -> {
+        driverXbox.setRumble(RumbleType.kBothRumble, 0);
+        driverPartnerXbox.setRumble(RumbleType.kBothRumble, 0);
+      }));
 
     driverXbox
       .leftTrigger()
       .and(driverXbox.povLeft())
-      .whileTrue(new PathToCoral(drivebase, Constants.constField.getReefPositions().get().get(10)));
+      .whileTrue(new OAPathCoral(drivebase, Constants.constField.getReefPositions().get().get(10))
+        .andThen(Commands.runOnce(() -> {
+          driverXbox.setRumble(RumbleType.kBothRumble, 0.5);
+          driverPartnerXbox.setRumble(RumbleType.kBothRumble, 0.5);
+        })))
+      .onFalse(Commands.runOnce(() -> {
+        driverXbox.setRumble(RumbleType.kBothRumble, 0);
+        driverPartnerXbox.setRumble(RumbleType.kBothRumble, 0);
+      }));
 
     driverXbox
       .rightTrigger()
       .and(driverXbox.povLeft())
-      .whileTrue(new PathToCoral(drivebase, Constants.constField.getReefPositions().get().get(11)));
+      .whileTrue(new OAPathCoral(drivebase, Constants.constField.getReefPositions().get().get(11))
+        .andThen(Commands.runOnce(() -> {
+          driverXbox.setRumble(RumbleType.kBothRumble, 0.5);
+          driverPartnerXbox.setRumble(RumbleType.kBothRumble, 0.5);
+        })))
+      .onFalse(Commands.runOnce(() -> {
+        driverXbox.setRumble(RumbleType.kBothRumble, 0);
+        driverPartnerXbox.setRumble(RumbleType.kBothRumble, 0);
+      }));
 
-    /*driverXbox
-      .leftTrigger(0.01)
-      .whileTrue(new PathToCoral(drivebase, drivebase.getDesiredReef(true)));
-
-    driverXbox
-      .rightTrigger()
-      .whileTrue(new PathToCoral(drivebase, drivebase.getDesiredReef(false)));*/
-/*
-    driverXbox
-      .leftTrigger(0.01)
-      .whileTrue(new PathToCoral(drivebase, Constants.constField.getReefPositions().get().get(0)));
-
-    driverXbox
-      .rightTrigger()
-      .whileTrue(new PathToCoral(drivebase, Constants.constField.getReefPositions().get().get(1)));
-*/
-    /*driverXbox
-      .leftTrigger(0.01)
-      .whileTrue(Commands.deferredProxy(() -> drivebase.driveToReef(true)));
-
-    driverXbox
-      .rightTrigger(0.01)
-      .whileTrue(Commands.deferredProxy(() -> drivebase.driveToReef(false)));*/
- 
-    /*driverXbox
-      .leftTrigger(0.01)
-      .whileTrue(Commands.deferredProxy(() -> drivebase.driveToReef(true))
-        .andThen(Commands.deferredProxy(() -> drivebase.alignToReef(true, MetersPerSecond.of(driveAngularVelocity.get().vxMetersPerSecond),
-          MetersPerSecond.of(driveAngularVelocity.get().vyMetersPerSecond), RadiansPerSecond.of(driveAngularVelocity.get().omegaRadiansPerSecond)))));
-
-    driverXbox
-      .rightTrigger(0.01)
-      .whileTrue(Commands.deferredProxy(() -> drivebase.driveToReef(false))
-      .andThen(Commands.deferredProxy(() -> drivebase.alignToReef(false, MetersPerSecond.of(driveAngularVelocity.get().vxMetersPerSecond),
-      MetersPerSecond.of(driveAngularVelocity.get().vyMetersPerSecond), RadiansPerSecond.of(driveAngularVelocity.get().omegaRadiansPerSecond)))));
-*/
-    /*driverXbox
-      .leftTrigger(0.01)
-      .whileTrue(Commands.deferredProxy(() -> drivebase.alignToReef(true, MetersPerSecond.of(driveAngularVelocity.get().vxMetersPerSecond),
-      MetersPerSecond.of(driveAngularVelocity.get().vyMetersPerSecond), RadiansPerSecond.of(driveAngularVelocity.get().omegaRadiansPerSecond))));
-
-    driverXbox
-      .rightTrigger(0.01)
-      .whileTrue(Commands.deferredProxy(() -> drivebase.alignToReef(false, MetersPerSecond.of(driveAngularVelocity.get().vxMetersPerSecond),
-      MetersPerSecond.of(driveAngularVelocity.get().vyMetersPerSecond), RadiansPerSecond.of(driveAngularVelocity.get().omegaRadiansPerSecond))));
-*/
-
-    /*driverXbox
-      .rightTrigger(0.01)
-      .onTrue(drivebase.driveToPose(REEF_B));
-
-    driverXbox
-      .leftTrigger(0.01)
-      .onTrue(drivebase.driveToPose(REEF_A));*/
-
-
-    /*driverXbox
-      .rightTrigger(0.01)
-      .onTrue(Commands.runOnce(() -> drivebase.autoAlign(Meters.of(drivebase.getPose().getTranslation().getDistance(REEF_B.getTranslation())),
-        REEF_B, MetersPerSecond.of(driveAngularVelocity.get().vxMetersPerSecond), MetersPerSecond.of(driveAngularVelocity.get().vyMetersPerSecond),
-        RadiansPerSecond.of(driveAngularVelocity.get().omegaRadiansPerSecond), 1.0, Constants.Drive.TELEOP_AUTO_ALIGN.MAX_AUTO_DRIVE_REEF_DISTANCE)));
-
-    driverXbox
-      .leftTrigger(0.01)
-      .onTrue(Commands.runOnce(() -> drivebase.autoAlign(Meters.of(drivebase.getPose().getTranslation().getDistance(REEF_A.getTranslation())),
-        REEF_A, MetersPerSecond.of(driveAngularVelocity.get().vxMetersPerSecond), MetersPerSecond.of(driveAngularVelocity.get().vyMetersPerSecond),
-        RadiansPerSecond.of(driveAngularVelocity.get().omegaRadiansPerSecond), 1.0, Constants.Drive.TELEOP_AUTO_ALIGN.MAX_AUTO_DRIVE_REEF_DISTANCE)));
-        */
-    /*driverXbox
-      .leftBumper()
-      .onTrue(drivebase.driveToPose(drivebase.getDesiredReef(true)));
-
-    driverXbox
-      .rightBumper()
-      .onTrue(drivebase.driveToPose(drivebase.getDesiredReef(false)));
-*/
-    /*driverXbox
-      .rightBumper()
-      .onTrue(drivebase.driveToReef(false));
-
-    driverXbox
-      .leftBumper()
-      .onTrue(drivebase.driveToReef(true));
-
-    driverXbox
-      .povUp()
-      .onTrue(drivebase.driveToPose(constField.getReefPositions().get().get(1)));*/
-    
     driverPartnerXbox
       .povUp()
       .onTrue(elevator.elevatorUp())
@@ -456,26 +479,6 @@ public class RobotContainer
       .povDown()
       .onTrue(elevator.elevatorDown())
       .onFalse(elevator.stopElevator());
-    
-    /*driverPartnerXbox
-      .povLeft()
-      .onTrue(new ParallelCommandGroup(
-        arm.setArmPivotTarget(Constants.Arm.C_LOADING_ANGLE),
-        elevator.setElevatorTarget(Constants.Elevator.C_LOADING_POS)
-      ));*/
-
-    /*driverPartnerXbox
-      .rightStick()
-      .onTrue(
-        new SequentialCommandGroup(
-          new ParallelCommandGroup(
-            arm.setWristTarget(Constants.Wrist.C_GROUND_ANGLE),
-            elevator.setElevatorTarget(Constants.Elevator.C_GROUND_POS)
-          ),
-          Commands.waitSeconds(0.3),
-          arm.setArmPivotTarget(Constants.Wrist.C_GROUND_ANGLE)
-        )
-      );*/
 
     driverPartnerXbox
       .back()
@@ -495,15 +498,18 @@ public class RobotContainer
     
     driverPartnerXbox
       .b()
-      .onTrue(C_L2());
+      .onTrue(C_L2WithoutArm())
+      .onFalse(arm.setArmSetpointCommand(CoralStates.C_L2));
 
     driverPartnerXbox
       .y()
-      .onTrue(C_L3());
+      .onTrue(C_L3WithoutArm())
+      .onFalse(arm.setArmSetpointCommand(CoralStates.C_L3));
 
     driverPartnerXbox
       .x()
-      .onTrue(C_L4());
+      .onTrue(C_L4WithoutArm())
+      .onFalse(arm.setArmSetpointCommand(CoralStates.C_L4));
     
     driverPartnerXbox
       .rightStick()
@@ -580,8 +586,8 @@ public class RobotContainer
     NamedCommands.registerCommand("C_OUTTAKE", coralIntake.outtakeCoral());
     NamedCommands.registerCommand("C_STOPINTAKE", coralIntake.stopIntake());
 
-    NamedCommands.registerCommand("CLIMB_OUT", hang.hangUp());
-    NamedCommands.registerCommand("CLIMB_IN", hang.hangDown());
+    NamedCommands.registerCommand("CLIMB_IN", hang.hangUp());
+    NamedCommands.registerCommand("CLIMB_OUT", hang.hangDown());
     NamedCommands.registerCommand("CLIMB_STOP", hang.stopHang());
 
     NamedCommands.registerCommand("autoAlign", Commands.deferredProxy(() -> new PathToCoral(drivebase, SELECTED_AUTO_PREP_MAP[AUTO_PREP_NUM])).withTimeout(5));
@@ -619,9 +625,67 @@ public class RobotContainer
 
   public Command limelightCenter() {
     return new SequentialCommandGroup(
+                                      hang.hangDown(),
+                                      Commands.waitSeconds(2),
+                                      hang.stopHang(),
+                                      new CoralAuto(drivebase),
                                       new OAPathCoral(drivebase, Constants.constField.getReefPositions().get().get(6)),
                                       C_L4(),
                                       Commands.waitSeconds(1.5),
                                       new SetCoralState(arm, wrist, elevator, CoralStates.C_STOW));
+  }
+
+  public Command limelightLeft() {
+    return new SequentialCommandGroup(
+      hang.hangDown(),
+      new CoralAuto(drivebase),
+      new ParallelCommandGroup(
+        new OAPathCoral(drivebase, Constants.constField.getReefPositions().get().get(9)),
+        new SequentialCommandGroup(
+          Commands.waitSeconds(2),
+          hang.stopHang()
+        )
+      ),
+      C_L4(),
+      coralIntake.outtakeCoral(),
+      Commands.waitSeconds(0.4),
+      coralIntake.intakeCoral(),
+      new SetCoralState(arm, wrist, elevator, CoralStates.C_STOW),
+      new OAPathCoral(drivebase, Constants.constField.getCoralStationPositions().get().get(0)),
+      Commands.waitSeconds(1),
+      coralIntake.stopIntake(),
+      new OAPathCoral(drivebase, Constants.constField.getReefPositions().get().get(10)),
+      C_L4(),
+      coralIntake.outtakeCoral(),
+      Commands.waitSeconds(0.4),
+      new SetCoralState(arm, wrist, elevator, CoralStates.C_STOW)
+    );
+  }
+
+  public Command limelightRight() {
+    return new SequentialCommandGroup(
+      hang.hangDown(),
+      new CoralAuto(drivebase),
+      new ParallelCommandGroup(
+        new OAPathCoral(drivebase, Constants.constField.getReefPositions().get().get(4)),
+        new SequentialCommandGroup(
+          Commands.waitSeconds(2),
+          hang.stopHang()
+        )
+      ),
+      C_L4(),
+      coralIntake.outtakeCoral(),
+      Commands.waitSeconds(0.4),
+      coralIntake.intakeCoral(),
+      new SetCoralState(arm, wrist, elevator, CoralStates.C_STOW),
+      new OAPathCoral(drivebase, Constants.constField.getCoralStationPositions().get().get(2)),
+      Commands.waitSeconds(1),
+      coralIntake.stopIntake(),
+      new OAPathCoral(drivebase, Constants.constField.getReefPositions().get().get(10)),
+      C_L4(),
+      coralIntake.outtakeCoral(),
+      Commands.waitSeconds(0.4),
+      new SetCoralState(arm, wrist, elevator, CoralStates.C_STOW)
+    );
   }
 }
