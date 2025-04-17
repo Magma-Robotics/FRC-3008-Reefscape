@@ -3,25 +3,25 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 5.77,
+        "x": 7.598,
         "y": 3.9
       },
       "prevControl": null,
       "nextControl": {
-        "x": 6.158443181818181,
-        "y": 3.898553977272727
+        "x": 6.89242613636364,
+        "y": 3.918497159090909
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 6.4615909090909085,
+        "x": 5.77,
         "y": 3.9
       },
       "prevControl": {
-        "x": 6.092642045454545,
-        "y": 3.904525568181818
+        "x": 6.256692880794701,
+        "y": 3.9072640728476817
       },
       "nextControl": null,
       "isLocked": false,
@@ -45,7 +45,7 @@
     "rotation": 180.0
   },
   "reversed": false,
-  "folder": "Middle Comp Auto Test",
+  "folder": "Middle Comp Auto",
   "idealStartingState": {
     "velocity": 0,
     "rotation": 180.0

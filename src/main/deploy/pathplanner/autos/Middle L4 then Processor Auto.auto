@@ -7,7 +7,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "LeftAuto1 - Drive Near Reef"
+            "pathName": "Middle1 - Drive To Reef"
           }
         },
         {
@@ -20,12 +20,6 @@
           "type": "wait",
           "data": {
             "waitTime": 1.5
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "LeftAuto2 - Drive To Reef"
           }
         },
         {
@@ -49,25 +43,13 @@
         {
           "type": "named",
           "data": {
-            "name": "C_LOAD"
+            "name": "C_L2"
           }
         },
         {
           "type": "wait",
           "data": {
-            "waitTime": 1.5
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "LeftAuto3B - Drive Away Reef To Coral Station"
-          }
-        },
-        {
-          "type": "wait",
-          "data": {
-            "waitTime": 1.2
+            "waitTime": 2.0
           }
         },
         {
@@ -77,21 +59,47 @@
           }
         },
         {
-          "type": "path",
-          "data": {
-            "pathName": "LeftAuto4B - Coral Station to Near Reef"
-          }
-        },
-        {
           "type": "named",
           "data": {
-            "name": "C_L4"
+            "name": "C_STOW"
           }
         },
         {
-          "type": "path",
+          "type": "wait",
           "data": {
-            "pathName": "LeftAuto5B - Reef"
+            "waitTime": 6.0
+          }
+        },
+        {
+          "type": "parallel",
+          "data": {
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "Middle2A - Drive To Processor"
+                }
+              },
+              {
+                "type": "sequential",
+                "data": {
+                  "commands": [
+                    {
+                      "type": "wait",
+                      "data": {
+                        "waitTime": 1.0
+                      }
+                    },
+                    {
+                      "type": "named",
+                      "data": {
+                        "name": "C_L1"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
           }
         },
         {
@@ -111,23 +119,11 @@
           "data": {
             "name": "C_STOPINTAKE"
           }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "C_STOW"
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "LeftAuto6B - Drive Away Reef"
-          }
         }
       ]
     }
   },
   "resetOdom": true,
-  "folder": "Left Comp Autos",
+  "folder": "Middle Comp Autos",
   "choreoAuto": false
 }

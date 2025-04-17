@@ -3,25 +3,25 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 8.067017045454547,
-        "y": 1.0484801136363637
+        "x": 5.77,
+        "y": 3.9
       },
       "prevControl": null,
       "nextControl": {
-        "x": 5.364715909090909,
-        "y": 1.0385085227272732
+        "x": 5.811258278145695,
+        "y": 3.44387417218543
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 3.739,
-        "y": 2.694
+        "x": 5.898427152317882,
+        "y": 0.6254139072847681
       },
       "prevControl": {
-        "x": 3.460142045454545,
-        "y": 2.165298295454545
+        "x": 5.86210678807947,
+        "y": 1.0975786423841043
       },
       "nextControl": null,
       "isLocked": false,
@@ -42,10 +42,10 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 59.931
+    "rotation": -90.0
   },
   "reversed": false,
-  "folder": "Comp Autos",
+  "folder": "Middle Comp Auto",
   "idealStartingState": {
     "velocity": 0,
     "rotation": 180.0

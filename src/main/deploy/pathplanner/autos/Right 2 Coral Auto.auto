@@ -7,13 +7,39 @@
         {
           "type": "named",
           "data": {
-            "name": "C_LOAD"
+            "name": "CLIMB_OUT"
           }
         },
         {
-          "type": "path",
+          "type": "parallel",
           "data": {
-            "pathName": "RightAuto1 - Drive Near Reef"
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "Right1 - Drive To Reef"
+                }
+              },
+              {
+                "type": "sequential",
+                "data": {
+                  "commands": [
+                    {
+                      "type": "wait",
+                      "data": {
+                        "waitTime": 1.5
+                      }
+                    },
+                    {
+                      "type": "named",
+                      "data": {
+                        "name": "CLIMB_STOP"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
           }
         },
         {
@@ -25,13 +51,7 @@
         {
           "type": "wait",
           "data": {
-            "waitTime": 1.8
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "RightAuto2 - Drive To Reef"
+            "waitTime": 1.5
           }
         },
         {
@@ -43,7 +63,7 @@
         {
           "type": "wait",
           "data": {
-            "waitTime": 0.5
+            "waitTime": 0.4
           }
         },
         {
@@ -61,19 +81,19 @@
         {
           "type": "wait",
           "data": {
-            "waitTime": 1.8
+            "waitTime": 1.5
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "RightAuto3B - Drive Coral Station"
+            "pathName": "Right2 - Drive To Coral Station"
           }
         },
         {
           "type": "wait",
           "data": {
-            "waitTime": 1.2
+            "waitTime": 1.0
           }
         },
         {
@@ -85,19 +105,19 @@
         {
           "type": "path",
           "data": {
-            "pathName": "RightAuto4B - Station to Reef"
+            "pathName": "Right3 - Drive To Reef"
           }
         },
         {
           "type": "named",
           "data": {
-            "name": "C_L1"
+            "name": "C_L4"
           }
         },
         {
-          "type": "path",
+          "type": "wait",
           "data": {
-            "pathName": "RightAuto5B - Drive To Reef"
+            "waitTime": 1.5
           }
         },
         {
@@ -109,7 +129,7 @@
         {
           "type": "wait",
           "data": {
-            "waitTime": 0.5
+            "waitTime": 0.4
           }
         },
         {
@@ -121,13 +141,7 @@
         {
           "type": "named",
           "data": {
-            "name": "C_LOAD"
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "RightAuto6B - Drive Away Reef"
+            "name": "C_STOW"
           }
         }
       ]

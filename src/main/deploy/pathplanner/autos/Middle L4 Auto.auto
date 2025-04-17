@@ -5,15 +5,9 @@
     "data": {
       "commands": [
         {
-          "type": "named",
-          "data": {
-            "name": "C_LOAD"
-          }
-        },
-        {
           "type": "path",
           "data": {
-            "pathName": "MiddleAuto1 Drive Near Reef"
+            "pathName": "Middle1 - Drive To Reef"
           }
         },
         {
@@ -29,12 +23,6 @@
           }
         },
         {
-          "type": "path",
-          "data": {
-            "pathName": "MiddleAuto2 Drive To Reef"
-          }
-        },
-        {
           "type": "named",
           "data": {
             "name": "C_OUTTAKE"
@@ -43,7 +31,7 @@
         {
           "type": "wait",
           "data": {
-            "waitTime": 0.6
+            "waitTime": 0.4
           }
         },
         {
@@ -55,19 +43,13 @@
         {
           "type": "named",
           "data": {
-            "name": "C_LOAD"
+            "name": "C_STOW"
           }
         },
         {
           "type": "wait",
           "data": {
             "waitTime": 1.5
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "MiddleAuto3 Drive Away Reef"
           }
         }
       ]

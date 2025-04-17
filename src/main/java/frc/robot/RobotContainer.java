@@ -213,6 +213,7 @@ public class RobotContainer
 
     autoChooser.addOption("limelightCenter", limelightCenter());
     autoChooser.addOption("limelightLeft", limelightLeft());
+    autoChooser.addOption("limelightRight", limelightRight());
 
     // Configure the trigger bindings
     configureBindings();
@@ -581,6 +582,9 @@ public class RobotContainer
     NamedCommands.registerCommand("C_L2", C_L2());//new SetCoralState(arm, wrist, elevator, CoralStates.C_L2));
     NamedCommands.registerCommand("C_L3", C_L3());//new SetCoralState(arm, wrist, elevator, CoralStates.C_L3));
     NamedCommands.registerCommand("C_L4", C_L4());//new SetCoralState(arm, wrist, elevator, CoralStates.C_L4));
+
+    NamedCommands.registerCommand("A_BARGE", new SetCoralState(arm, wrist, elevator, CoralStates.A_BARGE));
+    NamedCommands.registerCommand("A_PROCESSOR", new SetCoralState(arm, wrist, elevator, CoralStates.A_PROCESSOR));
 
     NamedCommands.registerCommand("C_INTAKE", coralIntake.intakeCoral());
     NamedCommands.registerCommand("C_OUTTAKE", coralIntake.outtakeCoral());

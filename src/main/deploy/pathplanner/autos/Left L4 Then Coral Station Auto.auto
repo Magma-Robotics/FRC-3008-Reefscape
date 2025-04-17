@@ -7,13 +7,39 @@
         {
           "type": "named",
           "data": {
-            "name": "C_LOAD"
+            "name": "CLIMB_OUT"
           }
         },
         {
-          "type": "path",
+          "type": "parallel",
           "data": {
-            "pathName": "LeftAuto1 - Drive Near Reef"
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "Left1 - Drive To Reef"
+                }
+              },
+              {
+                "type": "sequential",
+                "data": {
+                  "commands": [
+                    {
+                      "type": "wait",
+                      "data": {
+                        "waitTime": 1.5
+                      }
+                    },
+                    {
+                      "type": "named",
+                      "data": {
+                        "name": "CLIMB_STOP"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
           }
         },
         {
@@ -25,13 +51,7 @@
         {
           "type": "wait",
           "data": {
-            "waitTime": 1.8
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "LeftAuto2 - Drive To Reef"
+            "waitTime": 1.5
           }
         },
         {
@@ -43,7 +63,7 @@
         {
           "type": "wait",
           "data": {
-            "waitTime": 0.5
+            "waitTime": 0.4
           }
         },
         {
@@ -61,13 +81,13 @@
         {
           "type": "wait",
           "data": {
-            "waitTime": 1.8
+            "waitTime": 1.5
           }
         },
         {
           "type": "path",
           "data": {
-            "pathName": "LeftAuto3B - Drive Away Reef To Coral Station"
+            "pathName": "Left2 - Drive To Coral Station"
           }
         },
         {

@@ -3,13 +3,9 @@
   "robotLength": 0.851,
   "holonomicMode": true,
   "pathFolders": [
-    "Comp Autos",
     "Left Comp Auto",
-    "Left Comp Auto Test",
     "Middle Comp Auto",
-    "Middle Comp Auto Test",
-    "Right Comp Auto Test",
-    "Right Comp Autos"
+    "Right Comp Auto"
   ],
   "autoFolders": [
     "Left Comp Autos",
